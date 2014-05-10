@@ -1,13 +1,12 @@
-Welcome to the Technology Jungle
-===
+# Welcome to the Technology Jungle
+
 Historically picking a data store for a new application was a non-event. The paradigm was predetermined: relational database management system (RDBMS). The provider of the RDBMS was predetermined: startups used PostgreSQL or MySQL while many mid-to-large companies went with one of the Big 3 (Oracle, Microsoft or IBM). In fact, even the data modeling process was predetermined by years of experience within the RDBMS paradigm and the associated provider’s preference (like stored procs for many MS SQL Server jobs). There wasn’t any reason to question this. There were few alternatives and those weren’t cheap. Why chose something that is both exotic and expensive?
 
 Times have changed. SQL has competitors (or companions as well see later) in the NoSQL space. Stresses like high data volumes, rapid change and developer preferences caused a flood of new paradigms. In their wake many are left confused as to the proper application of the technologies. New tech brings new terms. Sometimes the industry equivocates on terms (we prefer to call it “overloading”). Added to this is that each camp and even more granular each vendor within a camp swears that their product is the best thing since set theory. It becomes hard to tease out fact from marketing. That’s what this book proposes to do.
 
 This book will provide a concise description and application of three major technologies related to data storage: NoSQL, New SQL and Big Data. You will learn the relative terms and theories from a 30,000 ft perspective. The goal is to give the reader enough information that they might better focus their research.
 
-What Did You Write This?
-===
+## What Did You Write This?
 There are three reasons I undertook this project. First, I’ve always enjoyed watching the hipster culture from a far. These trend setters discussed the benefits of adopting some NoSQL tool long before it was cool. They extolled the virtues of a schema-less model. They revolved in the process of not having traditional ACID transactions. They seldom talked about how their new toys were a bad fit. The sheer fandom made these new ideas interesting.
 
 Cooler heads tempered their exuberance. I got to see when there was a mismatch between problem spaces and implementation. I got to see how systems could be improved as told by random talking heads on the Internet at such websites like r/Programming or Hack News. Both sides of the argument got me really thinking about how distributed data storage could make life better/easier. They even improved my daily development against RDBMS’. 
@@ -18,8 +17,7 @@ All of the traditional, rubber stamped data stores failed to meet these requirem
 
 Finally, there is a lot of hype and confusion round the topics of NoSQL, New SQL and Big Data. Hundreds of blog posts, hundreds of counter blog posts. Books and books on specific topics. There are, however, few general survey books on the paradigms. Of those (I found 2 or so), none are directed as a survey for semi-technical people or technical people wanted to get the gist of the technologies. I wanted a book I could give my team or management so we’d all be conversant in general ideas. If and when we decided to use a specific implementation of a tool, it would only be after we had discussed the other options. To properly discuss we all need a common reference.
 
-General Outline of the Book
-===
+## General Outline of the Book
 The book is carved into three major portions. 
 
 The first provides an introduction to the terms. This is where we’ll discuss topics like ACID, BASE, Master->Master, etc. Most of these terms apply to more than one of the paradigms. Rather than explaining them within a context of a particular paradigm, and thus force a reading order, they are all front loaded.
