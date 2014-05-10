@@ -20,4 +20,16 @@ Finally, there is a lot of hype and confusion round the topics of NoSQL, New SQL
 
 General Outline of the Book
 ===
-The book is carved into three major portions. The first provides an introduction to the terms. The second looks at NoSQL families. The third looks at New SQL and Big Data. There isn’t a recommended order of reading. If you already feel comfortable with the general terms, skip it. Most people will want to at least skim the terms section. 
+The book is carved into three major portions. 
+
+The first provides an introduction to the terms. This is where we’ll discuss topics like ACID, BASE, Master->Master, etc. Most of these terms apply to more than one of the paradigms. Rather than explaining them within a context of a particular paradigm, and thus force a reading order, they are all front loaded.
+
+The second looks at NoSQL families. By my estimation there are 5 major families of NoSQL and some hybridized version as well. Those families are: Key-Value, Document, Columnar, Graph and Object databases. For each member we’ll discuss: 
+* The architecture.
+* Common use-case applications.
+* Products in the family.
+* Resources for future reading.
+
+The third looks at New SQL and Big Data. The reason for grouping these two is due to the push to make Big Data more SQL friendly by both Apache and the folks at Concurrent and that NewSQL gives up some traditional SQL features in order to get the systems to scale.  
+
+There isn’t a recommended order of reading. If you already feel comfortable with the general terms, skip it. Most people will want to at least skim the terms section. 
