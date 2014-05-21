@@ -18,7 +18,7 @@ All of the traditional, rubber stamped data stores failed to meet these requirem
 My third reason is simple. A lot of hype and confusion surrounds the topics of NoSQL, New SQL and Big Data, from hundreds of blog and counter blog posts to numerous books on specific topics. However, few general survey books are written on the paradigms. Of those (I found only a couple), none are constructed as a survey for semi-technical people or technical people who want to get the gist of the technologies. I wanted a book I could give my team or management so we’d all be conversant in general ideas. If and when we decided to use a specific implementation of a tool, it would only be after we had discussed the other options. To have a proper discussion, we all need a common reference.
 
 ## General Outline of the Book
-The book is carved into three major sections. 
+The book is divided into three major sections. 
 
 The first section provides an introduction to the terms. Here, we’ll discuss topics like ACID, BASE, Master->Master, etc. Most of these terms apply to more than one of the paradigms. Rather than explaining them within a context of a particular paradigm, and thus forcing a reading order, they are all front-loaded.
 
