@@ -18,11 +18,11 @@ In a HS system if you lose a node, you lose, at worst, the information on that n
 Quick note: HS is not only in NoSQL/New SQL/Big Data. You can get the same ability in Oracle, SQL Server and DB2. The difference between the two is that NoSQL provides the benefits of HS out of the box and for low cost.
 
 ## Failover Beethoven Tell the Client the News
-Let’s take a deeper look at failover. As stated most VS servers lack fail over. If you lose the server, you’re dead in the water until you revive it or get a new one. 
+Let’s take a deeper look at failover. Failover is a way for the system to automatically switch to a different data source in the case of a failure. As stated most VS servers lack fail over. If you lose the server, you’re dead in the water until you revive it or get a new one. 
 
 HS systems provide some form of failover, but you really have to look to see what form this takes. Some allow you to lose a master and still read data. All writes get rejected until the master is back up, but you’ve got partial availability. In another form, there is a “passive master”. This server is copying all the data in the master with each transaction. In the event of a master failure, the passive master steps in to service both reads and writes. Because the passive master was involved in all of the transactions, it is fairly consistent with the state of the master.
 
-Another point of fail over is how the clients are updated. Many of the HA solutions have a client that knows about each node or at least a majority of the nodes in the cluster. If a node goes down, the client is updated to black list the node. An algorithm then updates the client in the future when the node is healthy.
+Another point of failover is how the clients are updated. Many of the HA solutions have a client that knows about each node or at least a majority of the nodes in the cluster. If a node goes down, the client black lists the node. When the node returns to good health, the client corrects its list.
 
 ## Dropping ACID to Free<sup>2</sup>-BASE
 There are two terms here. The first is ACID. The second is BASE. 
@@ -39,13 +39,32 @@ In an ACID world, the number of available items is locked when the user added th
 
 In a BASE-ic world you don’t have these guarantees. For example, there is no item lock. So a person adds an item to their cart. You might decrement the number of items right then. That’s fine but you’re not consistent. It could be that the user abandons the cart. This means that you actually have one item available in the warehouse. The user may check out. You could have the purchase order visible to the system with only some of the lines added.
 
-Now some people freak out about BASE. Truth is that it _might_ not be that big of a deal. Many enterprise applications don’t really leverage ACID because A) web servers make it hard to hold a transaction across page renders and B) developers are told to get and drop a database connection/transaction ASAP. So your applications in the field bringing in your monies might not really be locking and holding values as you might think. Another example is that accounting systems aren’t ACID even though they are the pedagogic example of ACID.
+Now some people freak out about BASE. Truth is that it _might_ not be that big of a deal. Many enterprise applications don’t really leverage ACID because A) web servers make it hard to hold a transaction across page renders and B) developers are told to get and drop a database connection/transaction ASAP. So your applications in the field bringing in your monies might not really be locking and holding values as you might think. Another example is that accounting systems aren’t ACID even though they are the pedagogic example of ACID. If a banking system truly checked to values in both accounts during a transaction, we’d never have overdrafts. Instead, it might take a few days for your paycheck to fully post even though your bank might credit you.
 
 Picture what ever database student first learns as the example of ACID. A person withdraws money from one account and deposits it into another. This is said to occur atomically, isolated, consistently and durably. In reality the account can go into an inconsistent state. This is called overdrawn. 
 
 When you and your team look at systems that implement BASE over ACID, ask yourself do you really need ACID. It seems comforting at first. It seems natural because we’re all taught that it is right way. But then again, it’s a tool. Do you need this tool?
 
-## My other CAP is a Theorem<sup>6</sup>
+## And to CAP It All Off A Node Died!
+
+Failure happens everyday. A powerful Oracle box suddenly goes offline due to a bad motherboard. Your web server, that faithful, old, beige box sitting in the closet, ground its last hard drive. Then there’s the always humorous accident where a guy accidentally sends a picture of himself dressed as a White Castle Slider to everyone in your multinational insurance company thereby bringing email down for all the agents and other company personnel including the VPs, VIPs and CEO because the picture was 2.58 MB and Exchange just couldn’t handle that load. Yep, failure happens.
+
+Failure happens even more when you’re working in a shared/distributed system. Let’s say you’ve got a great system that has a slim chance meaning that it’s got a 99.9% chance of not failing. If you’ve got 40 nodes in a cluster you’ll have 3.9% chance that something will fail<sup>6</sup>.
+
+Now you’ve got to figure out how you’re going to react to failure. Fortunately the Failure Reaction Triangle exists just like the Project Management Triangle<sup>7</sup>. This triangle is CAP. C stands for Consistency. A is Availability. P is Partition tolerance (T is not capitalized because it would be the CAPT theory and NoSQL folks tend to be pacifists; I’m making this part up). Like the Project Management Triangle, you get to pick two. Unlike the Project Management Triangle, CA is not possible<sup>6</sup>.
+
+Consistency means that to an outside observer, like a database client, change events happen at single, logical point. This means that once a change is made to a record, all of the subsequent calls about that record reflect the change. 
+
+Availability means that every request to a working node must be satisfied. If a client asks a node for a record on patient A, it has to return the record. If a working node tosses some sort of error from its side, the record is not considered available. Note: if a client sends an invalid request and the server simple returns a bad request error, the system is still actually available. The proper response to getting garbage is to say, “That was crap.”
+
+Partition Tolerance deals with how the system works if one or more parts of the system can’t talk to each other. Specifically it’s concerned about how does the system handle losing messages. If you’re looking at a system that says it doesn’t have to work with Partition Tolerance, you’ve got a system that doesn’t understand CAP or is one where there is no network. Anything else means the designers have bought one or more of the fallacies of distributed computing<sup>8</sup>. You should really look at another vendor.
+
+Consistent systems react to partitioning different ways. Some might declare a snow day for the whole distributed system. It will reject all reads and writes just as if it were a VS system. It might allow only reads. Finally, it might allow updates based on the master data available in the currently “healthy” pool of nodes. 
+
+You’ll need to have your team pay close attention to how the system figures out which are healthy and which are not. Let’s say you’ve got 4 nodes in a cluster. Two nodes are in one rack. Two nodes in the other. The network connection between them dies, but both subsets are accessible to some of the clients. How does the logical system determine which nodes to consider healthy? 
+
+You might also hear the phrase “eventual consistency”. In this model, a system will allow copies of a record to become outdated. A client might not get the latest update because the change may not have percolated out to all the copied nodes. Often times such systems have quorum settings in their drivers. If they do, the client to the datastore will poll multiple nodes (this is the quorum). If X nodes come back with the same answer, the client will take that. 
+
 
 
 1 - http://en.wikipedia.org/wiki/Moore's_law
@@ -53,4 +72,6 @@ When you and your team look at systems that implement BASE over ACID, ask yourse
 3 - Free as in Beer, of course.
 4 - http://www.bailis.org/blog/when-is-acid-acid-rarely/
 5 - http://www.cs.berkeley.edu/~brewer/cs262b/TACC.pdf
-6 - http://learnyousomeerlang.com/distribunomicon#my-other-cap-is-a-theorem
+6 - http://codahale.com/you-cant-sacrifice-partition-tolerance/
+7 - http://en.wikipedia.org/wiki/Project_management_triangle
+8 - http://www.rgoarchitects.com/Files/fallacies.pdf
