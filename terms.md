@@ -57,7 +57,7 @@ Consistency means that to an outside observer, like a database client, change ev
 
 Availability means that every request to a working node must be satisfied. If a client asks a node for a record on patient A, it has to return the record. If a working node tosses some sort of error from its side, the record is not considered available. Note: if a client sends an invalid request and the server simple returns a bad request error, the system is still actually available. The proper response to getting garbage is to say, “That was crap.”
 
-Partition Tolerance deals with how the system works if one or more parts of the system can’t talk to each other. Specifically it’s concerned about how does the system handle losing messages. If you’re looking at a system that says it doesn’t have to work with Partition Tolerance, you’ve got a system that doesn’t understand CAP or is one where there is no network. Anything else means the designers have bought one or more of the fallacies of distributed computing<sup>8</sup>. You should really look at another vendor.
+Partition Tolerance deals with how the system works if one or more parts of the system can’t talk to each other. Specifically it’s concerned about how does the system handle losing messages. If you’re looking at a system that says it doesn’t have to work with Partition Tolerance, you’ve got a system that doesn’t understand CAP or is one where there is no network. Anything else means the designers have bought one or more of the fallacies of distributed computing <sup>8</sup>. You should really look at another vendor.
 
 Consistent systems react to partitioning different ways. Some might declare a snow day for the whole distributed system. It will reject all reads and writes just as if it were a VS system. It might allow only reads. Finally, it might allow updates based on the master data available in the currently “healthy” pool of nodes. 
 
@@ -67,11 +67,11 @@ You might also hear the phrase “eventual consistency”. In this model, a syst
 
 
 
-1 - http://en.wikipedia.org/wiki/Moore's_law
-2 - This presumes that the data store doesn’t have a single management node. If it does, then you’re in as much trouble as in a Vertically Scalable system.
-3 - Free as in Beer, of course.
-4 - http://www.bailis.org/blog/when-is-acid-acid-rarely/
-5 - http://www.cs.berkeley.edu/~brewer/cs262b/TACC.pdf
-6 - http://codahale.com/you-cant-sacrifice-partition-tolerance/
-7 - http://en.wikipedia.org/wiki/Project_management_triangle
-8 - http://www.rgoarchitects.com/Files/fallacies.pdf
+1. http://en.wikipedia.org/wiki/Moore's_law
+2. This presumes that the data store doesn’t have a single management node. If it does, then you’re in as much trouble as in a Vertically Scalable system.
+3. Free as in Beer, of course.
+4. http://www.bailis.org/blog/when-is-acid-acid-rarely/
+5. http://www.cs.berkeley.edu/~brewer/cs262b/TACC.pdf
+6. http://codahale.com/you-cant-sacrifice-partition-tolerance/
+7. http://en.wikipedia.org/wiki/Project_management_triangle
+8. http://www.rgoarchitects.com/Files/fallacies.pdf
