@@ -55,13 +55,34 @@ To prevent this, a K-V server can get quietly dropped in. It is beyond the scope
 
 Since session is safely stored outside of the server, you can fail over your web applications without much concern. Depending on the implementation of the connector, any changes to the session are first written locally and then persisted through to the backing store as part of a transaction. Your developers won’t have to worry about the details. You’re OPs guys won’t have to work about a really chatty network. You won’t have to worry because you spent just $6k on two Redis servers setup in master-slave.
 
+## Sounds Great! What's the Catch?!
+The information here is a conglomeration of several K-V transactional semantics. You'll need too read the documentation for a specific server. There are some general concepts too keep in mind.
+
+### Transactions: I Don't Think That Word Means What You Think It Means
+In a RDBMS, a transaction means that everything within it happens or it doesn't. If you read from two tables and update three tables, those reads should be properly isolated; those changes should stick. If anything prevents the whole read/write set from occurring, the datastore should just forget it (rollback). 
+
+Some K-Vs support that concept. Berkley DB, for example, allows a transaction to start, multiple records to change and commit. In the event that any step fails, the whole thing is rolled back to the state before the transaction started. 
+
+Other K-Vs, like Redis, have transactions, but don't have rollback. In this case transactions are more like batches. It's up to the application to the response codes to make sure that everything went according to plan. In the event of failure, the developer needs to take programatic steps to correct the database state. It behavior is against the common use of the word "transaction".
+
+Standard rule applies with K-Vs as it does with every other NoSQL: read the manual. 
+
 ## Products in the Family
+### Prokaryote In Real Life
 BerkleyDB is an embedded Key-Value store. It comes in several flavors. You can get it directly from the BerkleyDB project. You can also get it from Oracle in both C and Java builds. It's been around for 15+ years. It's battle tested. It is also under active development. Some flavors are more advanced. For example Oracle's version comes with an embedded SQLite database as well. 
 
 Since the application is embedded it will run within the same memory space as your application. This means if you store 4 GB of data in the database, and the database decides to load all 4 GB into memory, your application profile be whatever your application uses plus the 4-6 GB of memory required by the database.
 
-Redis[^redis] is a full featured, server based K-V. It provides multiple data structure formats, atomic counter (multi-client safe number incrementers) as well as master-slave replication. There are plugins for multiple platforms. Manning and other publishers have books available. The community is responsive to questions. Unlike BerkleyDB, if the server dies, it's possible to A) not kill the hosting application and B) failover to the slave. 
+A quick note on versions. There are a few out there. The most Berkley form, the one with Birkenstock and scarf, the K-V is embedded. There are two other version, Berkley DB Java Edition and Berkley DB XML. These are Oracle instances. They are not to be confused with the Berkley DB API for *Java*. The difference is the former is a Java-based implementation of the Berkley DB API. The later is an API to bind Java to the Berkley C API. It's a bit confusing. The reason why it matters is that the Berkley DB Java Edition allows for non-embedded deployment. You can even get High Availability (master-slave) deployments with it.
 
+### Eukaryotic (ones with nucleus)
+Redis[^redis] is a full featured, server based K-V. It provides multiple data structure formats, atomic counter (multi-client safe number incrementers) as well as master-slave replication. 
 
+There are plugins for multiple platforms. This means that there is probably a client for your particular language. There are drivers for all of the big ones: Java, .NET, Ruby, Python, Node.JS and Erlang. On top of this, you'll find enhancement to standard stacks like JEE or IIS to persist session information seamlessly into Redis behind the scenes.
 
+It is a well respected, open-source implementation with a good market share. Manning and other publishers have books available. The community is responsive to questions. Amazon Beanstalk also supports it as part of the service. 
+
+It is a fully operational datastore. It offers persistence, tiering and replication. If your application fits this model, it could help save thousands of dollars on licensing fees when compared to traditional RDBMS. It's schemaless design may help get a project along quicker too. Rather than having to constantly update the older schema along with data migrations, each iteration of the software can add handlers for new and old data elements.
+
+## Foot Notes
 [^redis]: http://redis.io/
