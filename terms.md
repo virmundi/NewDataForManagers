@@ -7,31 +7,34 @@ This is probably readily known, but should be stated for completeness, if nothin
 ## Where’s My Data
 The first thing that you’ll probably see in any discussion on most of these data stores is that these stores are distributed. You might have also seen it referred to as being horizontally scalable. During these conversations, you will have probably also seen a contrast to vertically scalable. Because of this, a reasonable place to start is with definitions for these terms.
 
-A vertically scalable (VS) data store is one that’s improved by shoving more components in the box. This could mean adding more cores, more RAM, more storage or any combination thereof. This is the traditional model of database design. It’s worked well in the past. Moore’s Law<sup>1</sup> pretty much doubled computer performance every 18 months. This model gets to be fairly expensive given enough time. The effect will plateau. Soon you run out of RAM slots, drive bays and CPU sockets.
+A vertically scalable (VS) data store is one that’s improved by shoving more components in the box. This could mean adding more cores, more RAM, more storage or any combination thereof. This is the traditional model of database design. It’s worked well in the past. Moore’s Law[^moores_law] pretty much doubled computer performance every 18 months. This model gets to be fairly expensive given enough time. The effect will plateau. Soon you run out of RAM slots, drive bays and CPU sockets. You might end up with a really beefy box. Regardless, you end up with *a* beefy box. One network issue or motherboard issue and you're dead in the water.
 
 Horizontal scaling (HS) looks to bring the cost down and extend the time till plateau. In a horizontally scalable data store, you don’t add RAM, drives or CPUs to get better performance, although doing so will still yield improvements. Instead you add commodity servers as you need to expand. By doubling the number of computers in your cluster (group of computers), you should see a near doubling of performance.
 
 Let’s compare the two designs. In HS, your data is spread across (striped) the computers (nodes) in the cluster. Depending on how the particular data store does this, it’s possible to know exactly where the data is based on the distribution algorithm. This can make lookups really quick. In a VS, all of the data is in one place. Every RDMBS worth its salt has indexes. So like HS, if your query is for an index item, the lookup is really quick. If the data is not indexed, a HS system might have to query multiple systems at once. This makes the query take as long as the slowest node in the cluster. A VS will scan local files.
 
-In a HS system if you lose a node, you lose, at worst, the information on that node<sup>3</sup>. Depending on how your data store works, you might not have even lost that. Most HS have the ability to fail over to a hot copy of the data on the master node. In a VS, if you lose the database server, you’re out of luck. 
+In a HS system if you lose a node, you lose, at worst, the information on that node[^free_beer]. Depending on how your data store works, you might not have even lost that. Most HS have the ability to fail over to a hot copy of the data on the master node. In a VS, if you lose the database server, you’re out of luck. 
 
 Quick note: HS is not only in NoSQL/New SQL/Big Data. You can get the same ability in Oracle, SQL Server and DB2. The difference between the two is that NoSQL provides the benefits of HS out of the box and for low cost.
 
 ## Failover Beethoven Tell the Client the News
 Let’s take a deeper look at failover. Failover is a way for the system to automatically switch to a different data source in the case of a failure. As stated most VS servers lack fail over. If you lose the server, you’re dead in the water until you revive it or get a new one. 
 
-HS systems provide some form of failover, but you really have to look to see what form this takes. Some allow you to lose a master and still read data. All writes get rejected until the master is back up, but you’ve got partial availability. In another form, there is a “passive master”. This server is copying all the data in the master with each transaction. In the event of a master failure, the passive master steps in to service both reads and writes. Because the passive master was involved in all of the transactions, it is fairly consistent with the state of the master.
+HS systems provide some form of failover, but you really have to look to see what form this takes. Some allow you to lose a master and still read data. All writes get rejected until the master is back up, but you’ve got partial availability. In another form, there is a “passive master”. This server is copying all the data in the master with each transaction. In the event of a master failure, the passive master steps in to service both reads and writes. Because the passive master was involved in all of the transactions, it is fairly consistent with the state of the master. You will also see some systems as being multi-master or master-master. In this instance there is no one system that is “true”. Each master can take writes. The writes are coordinated between the masters to synchronize the data. The benefit of such a system is higher throughput. It does bring issues when trying to understand which record is the “truth”.
 
 Another point of failover is how the clients are updated. Many of the HA solutions have a client that knows about each node or at least a majority of the nodes in the cluster. If a node goes down, the client black lists the node. When the node returns to good health, the client corrects its list.
 
-## Dropping ACID to Free<sup>2</sup>-BASE
+## Election - I’m the President! No! I AM!
+
+
+## Dropping ACID to Free[^note_on_management_nodes]-BASE
 There are two terms here. The first is ACID. The second is BASE. 
 
 ACID stands for Atomicity, Consistency, Isolation, and Durability. Atomicity means that all of the database involved in a transaction are changed or none are. Consistency means that the database cannot get into an illegal state. Isolation means that the partial effects of a transaction can be visible or hidden depending on what they user specifies. Finally Durability means that once the database said a change occurred, it is really occurred.
 
-Most RDBMS’ are ACID compliant (at least logically <sup>4</sup>). For most people ACID is _thought_ to be a requirement. Interestingly, most of the RDBMS do not actually provide ACID and the world still spins. 
+Most RDBMS’ are ACID compliant (at least logically [^not_acid]). For most people ACID is _thought_ to be a requirement. Interestingly, most of the RDBMS do not actually provide ACID and the world still spins. 
 
-BASE stands for Basically Available, Soft-State, Eventually Consistent. Basically Available means that some version of the data is available when requested. It’s not necessarily the true data, but it a version. Soft-State means that the data is not (necessarily) persisted to a permanent medium like a disk<sup>5</sup>. Eventually consistent means that the whole system will get into a good state given enough time (this could be a few milliseconds, vendor specific).
+BASE stands for Basically Available, Soft-State, Eventually Consistent. Basically Available means that some version of the data is available when requested. It’s not necessarily the true data, but it a version. Soft-State means that the data is not (necessarily) persisted to a permanent medium like a disk[^berk_pdf]. Eventually consistent means that the whole system will get into a good state given enough time (this could be a few milliseconds, vendor specific).
 
 Let’s say you’ve got a person adding a item to their shopping cart. When they pay, the system has to decrement the number of items in your system’s inventory, create a purchase order, and possibly update the user’s financial information like adding a new credit card to their list of cards.
 
@@ -45,19 +48,19 @@ Picture what ever database student first learns as the example of ACID. A person
 
 When you and your team look at systems that implement BASE over ACID, ask yourself do you really need ACID. It seems comforting at first. It seems natural because we’re all taught that it is right way. But then again, it’s a tool. Do you need this tool?
 
-## And to CAP It All Off A Node Died!
+## And to CAP It All Off a Node Died!
 
 Failure happens everyday. A powerful Oracle box suddenly goes offline due to a bad motherboard. Your web server, that faithful, old, beige box sitting in the closet, ground its last hard drive. Then there’s the always humorous accident where a guy accidentally sends a picture of himself dressed as a White Castle Slider to everyone in your multinational insurance company thereby bringing email down for all the agents and other company personnel including the VPs, VIPs and CEO because the picture was 2.58 MB and Exchange just couldn’t handle that load. Yep, failure happens.
 
-Failure happens even more when you’re working in a shared/distributed system. Let’s say you’ve got a great system that has a slim chance meaning that it’s got a 99.9% chance of not failing. If you’ve got 40 nodes in a cluster you’ll have 3.9% chance that something will fail<sup>6</sup>.
+Failure happens even more when you’re working in a shared/distributed system. Let’s say you’ve got a great system that has a slim chance meaning that it’s got a 99.9% chance of not failing. If you’ve got 40 nodes in a cluster you’ll have 3.9% chance that something will fail[^no_ca].
 
-Now you’ve got to figure out how you’re going to react to failure. Fortunately the Failure Reaction Triangle exists just like the Project Management Triangle<sup>7</sup>. This triangle is CAP. C stands for Consistency. A is Availability. P is Partition tolerance (T is not capitalized because it would be the CAPT theory and NoSQL folks tend to be pacifists; I’m making this part up). Like the Project Management Triangle, you get to pick two. Unlike the Project Management Triangle, CA is not possible<sup>6</sup>.
+Now you’ve got to figure out how you’re going to react to failure. Fortunately the Failure Reaction Triangle exists just like the Project Management Triangle[^pm_triangle]. This triangle is CAP. C stands for Consistency. A is Availability. P is Partition tolerance (T is not capitalized because it would be the CAPT theory and NoSQL folks tend to be pacifists; I’m making this part up). Like the Project Management Triangle, you get to pick two. Unlike the Project Management Triangle, CA is not possible<sup>6</sup>.
 
 Consistency means that to an outside observer, like a database client, change events happen at single, logical point. This means that once a change is made to a record, all of the subsequent calls about that record reflect the change. 
 
 Availability means that every request to a working node must be satisfied. If a client asks a node for a record on patient A, it has to return the record. If a working node tosses some sort of error from its side, the record is not considered available. Note: if a client sends an invalid request and the server simple returns a bad request error, the system is still actually available. The proper response to getting garbage is to say, “That was crap.”
 
-Partition Tolerance deals with how the system works if one or more parts of the system can’t talk to each other. Specifically it’s concerned about how does the system handle losing messages. If you’re looking at a system that says it doesn’t have to work with Partition Tolerance, you’ve got a system that doesn’t understand CAP or is one where there is no network. Anything else means the designers have bought one or more of the fallacies of distributed computing <sup>8</sup>. You should really look at another vendor.
+Partition Tolerance deals with how the system works if one or more parts of the system can’t talk to each other. Specifically it’s concerned about how does the system handle losing messages. If you’re looking at a system that says it doesn’t have to work with Partition Tolerance, you’ve got a system that doesn’t understand CAP or is one where there is no network. Anything else means the designers have bought one or more of the fallacies of distributed computing[^fallacy]. You should really look at another vendor.
 
 Consistent systems react to partitioning different ways. Some might declare a snow day for the whole distributed system. It will reject all reads and writes just as if it were a VS system. It might allow only reads. Finally, it might allow updates based on the master data available in the currently “healthy” pool of nodes. 
 
@@ -67,11 +70,11 @@ You might also hear the phrase “eventual consistency”. In this model, a syst
 
 
 
-1. http://en.wikipedia.org/wiki/Moore's_law
-2. This presumes that the data store doesn’t have a single management node. If it does, then you’re in as much trouble as in a Vertically Scalable system.
-3. Free as in Beer, of course.
-4. http://www.bailis.org/blog/when-is-acid-acid-rarely/
-5. http://www.cs.berkeley.edu/~brewer/cs262b/TACC.pdf
-6. http://codahale.com/you-cant-sacrifice-partition-tolerance/
-7. http://en.wikipedia.org/wiki/Project_management_triangle
-8. http://www.rgoarchitects.com/Files/fallacies.pdf
+[^moores_law]: http://en.wikipedia.org/wiki/Moore's_law
+[^note_on_management_nodes]: This presumes that the data store doesn’t have a single management node. If it does, then you’re in as much trouble as in a Vertically Scalable system.
+[^free_beer]: Free as in Beer, of course.
+[^not_acid]: http://www.bailis.org/blog/when-is-acid-acid-rarely/
+[^berk_pdf]: http://www.cs.berkeley.edu/~brewer/cs262b/TACC.pdf
+[^no_ca]: http://codahale.com/you-cant-sacrifice-partition-tolerance/
+[^pm_triangle]: http://en.wikipedia.org/wiki/Project_management_triangle
+[^fallacy]: http://www.rgoarchitects.com/Files/fallacies.pdf
