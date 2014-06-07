@@ -25,7 +25,9 @@ HS systems provide some form of failover, but you really have to look to see wha
 Another point of failover is how the clients are updated. Many of the HA solutions have a client that knows about each node or at least a majority of the nodes in the cluster. If a node goes down, the client black lists the node. When the node returns to good health, the client corrects its list.
 
 ## Election - I’m the President! No! I AM!
+If  something happens to the President of the United States, there is a law that defines who gets the job next. Presently (2014) there are 16 possible slots with 2 slots unfilled. As per the law, vacant spots are skipped. This law is rather algorithmic. Each case is defined with a codified response. How much more important is your data? 
 
+In the case of a master-slave system (even master-master where a master has slaves), a new master must be elected in the case of, say, a master dying from cracking corn. Each distributed system has its own means for doing this. Their documentation will describe the specific algorithm for election. Once a new master is elected, the clients to the system should redirect to the new master for all of the writes, if not all of the reads.
 
 ## Dropping ACID to Free[^note_on_management_nodes]-BASE
 There are two terms here. The first is ACID. The second is BASE. 
@@ -69,7 +71,7 @@ You’ll need to have your team pay close attention to how the system figures ou
 You might also hear the phrase “eventual consistency”. In this model, a system will allow copies of a record to become outdated. A client might not get the latest update because the change may not have percolated out to all the copied nodes. Often times such systems have quorum settings in their drivers. If they do, the client to the datastore will poll multiple nodes (this is the quorum). If X nodes come back with the same answer, the client will take that. 
 
 
-
+## Foot Notes
 [^moores_law]: http://en.wikipedia.org/wiki/Moore's_law
 [^note_on_management_nodes]: This presumes that the data store doesn’t have a single management node. If it does, then you’re in as much trouble as in a Vertically Scalable system.
 [^free_beer]: Free as in Beer, of course.
