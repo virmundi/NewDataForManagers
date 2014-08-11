@@ -1,88 +1,104 @@
 # Key-Value Stores
+Key-Value stores (K-V) are perhaps the simplest of the NoSQL solutions, at least logically. Most developers use maps or dictionaries in their everyday coding. Key-Value stores are an expansion on this idea. Another term for Key-Value is Distributed Hash Table. As well see, a K-V is a lot like an old Rolodex. The key is the person's last name. The value is their contact information. Knowing the last name allows you to quickly jump to the proper location in the Rolodex. 
 
-## Starting with the Prokaryotes
-Biology is a fascinating topic. Scientist deal with what is alive and what’s not. Viruses are some of the simplest forms of possible life. I would liken Key-Value stores to viruses, but that’s a loaded word in computer science. So let’s look to another fitting example from biology.
+K-Vs are everywhere. You can get them for mobile, for the server side and even in HTML5. Where they lack in complexity, K-Vs make up for it with their ubiquity. Depending on your application or system needs using K-Vs through the stack can lead to less mental overhead since developers won't have to jump between different persistence models.
 
-Bacteria are some of the simplest things out there. They are more complex than viruses. Bacteria have cell walls, cytoplasm and DNA. There are good bacteria and bad bacteria. As a result, the term is not as problematic as viruses. There are also many forms of bacteria. Prokaryotes are some of the simplest of the simple.
+## Architecture
+At the core is an incredibly simple, yet power abstraction: keys and their values. A key is a set of bytes that uniquely identifies a thing. That thing is called the value. It too is simply a set of bytes. The most rudimentary key-value stores don't attempt to know what's in the key or in the value. Both are opaque to the storage mechanism. A key might be the string "name" with a value of "Patrick". Another key might be the hex number 0xBEEF with the value of "It's what's for dinner". The data store doesn't force any representational semantics on the developer.
 
-Prokaryotes lack a nucleus. They are, essentially, a bag of things. Each thing provides some benefit to the bacteria as a whole. Each thing has a name and a responsibility. Finding the responsibility is easy as long as you have the name. It’s a quick index lookup like in a catalogue. Finding the name from the responsibility requires reading through all of the responsibilities.
+The key's content is hashed. This means that it's turned into a new, fixed size data used to pick a slot in a table for the value. Production hash functions are fast. Looking up a value via the hash is fast. Two fasts equal a fast system.
 
-Key-value stores are essentially like bacteria. A K-V is the bacteria. The data within it is like the things. Depending on the complexity of the K-V store, you might get opaque insights into the values. You might get more complex data management like list and sets. Let’s look at the general architecture. Once we understand that, well look at the evolutionary changes found in the K-V family.
+Given the logical simplicity of the paradigm, the simple K-V provides the operations of `GET`, `PUT`, and `DELETE`. `GET` retrieves a value from the store. `PUT` inserts a value at a key if it doesn't exists or overwrites the value if does. `DELETE` removes the value from the data store.
 
-## General Architecture
-### The Prokaryote
-At its heart, a K-V act like a stand alone map or dictionary. Record items are added by inserting a value with a specific key. They are retrieved with the same key. They act like an old Rolodex.
+As stated earlier, most programming languages have the concept of a K-V as a map or dictionary.  For example, Java looks like this.
+    HashMap<String, Integer> cache = new HashMap<String, Integer>();
+    cache.put("user.age", 21);
+    System.out.println("User age is " + cache.get("user.age")); // Prints User age is 21
+    cache.remove("user.age"); // Removes the value 21, and returns it.
 
-Most of the time the key is a string. A string is series of bytes where each byte represents a character (unicode makes this a scoach more complex, but we’ll ignore it for now). The string is *hashed* into a number. Once hashed, the operation to insert a record into a map is really fast. If we’re using Big ‘O’ notation, inserting, finding and removing should all be a constant amount of time. The goal of a good hash algorithm is to create a number so unique that you will *probably* not have another item hash to the same number unless that other item is itself the actual key used to insert data.
+From the examples above one thing should be obvious, key uniqueness matters. If we used "user.age" for all of our users, we would overwrite the values and get it wrong. Instead we could model it with "<username>.user.age" where `<username>` is the id for the present user.
 
-The datastore is embedded. An application uses client API in its language to bind to the datastore. Depending on the embedded server, there may be only three real operations available: put, get and delete. Since the database is embedded it runs in the same memory space of the application using it.
+While basic CRUD could be enough for some implementations NoSQL variants go beyond it. Many remove the the opacity of the values. Rather than treating them as blobs, the K-V knows they are a set of items or a list of items or a counter. As a result the developer/modeler can safely add to a list in a concurrent environment. They can universally and atomically get the next value of an ever increasing integer. 
 
-Not all prokaryotic K-Vs are this simple. Some have more advanced features such as persistence or data structure support. As far as the K-V is concerned the *value* is nothing more than a bunch of bytes. The client might be putting in pictures, or WordDocs or anything else. The K-V thinks the user put in a blob (byte large object).
+So far we've really just talked about a single node system. In the early days, K-Vs largely were a single node system. Time has marched forward. Many K-Vs support clustering. The development team is still using a logical hash table. That table is spread across multiple nodes. The hash function often performs double duty in a distributed system. Not only does it pick the slot for a record, but it also picks the node. 
 
-There are few benefits to this model. First, the code to support it is really simple. Even the big advanced servers in the space like Redis are only about 20k LOC. If a company using a K-V found a bug in the tool and they had a developer proficient in the K-V’s language, that company could probably patch the issue in a day. Second, they are really fast. Some of the servers boast a inserting a million records in around 1 second. Since we’re just hashing
+As we'll see in the Product Overviews section, a K-V can store its information in memory or persistently to a disk. There are tradeoffs and design considerations with either mechanism. Pure memory options are useful for pure speed. They are also purely transient. If the box suffers a power outage, everything in memory will probably be lost. This might not be a bad thing&trade;. When the K-V persists it must  slow down some in order write. How much of a slow down is product specific. The benefit is that while slower, you're system can survive a reboot.
 
-### From Prokaryotes to Protozoans
-Because the *value* is just a blog, querying is difficult on a prokaryotic K-V. The order of keys is not known. Blobs are just bytes, so the server can’t look for all instances of people whose first name starts with ‘Jo’. This moves the work onto the application and the developer. 
+Most of the K-Vs are transactional at the key level. This means that when you put a value for a key, you either put the whole value or you won't. It is not possible for a partial write to occur. The same is true for a read. You cannot read a partially added value. For example, say you wanted to `put` the value `Bob` in the key `<usersession>.firstname`. It is not possible even during failure to write `Bo` or `B`. When a client of a K-V requests `<usersession.firstname>` the system will either return an empty response (if it hasn't got a value or if the value is removed) or it will return `Bob`. It can't return `B`.
 
-Due to such limitations, more advanced K-Vs arose from the programatic sludge. These tools allow for key ordering. This allows range searches against key entries. They make the content of the values semi transparent. For example the server might make it possible to store a list of blobs. It will also make simple operations available for the lists. You will probably see an “add” operation that requires a list name and a value to add.
+## Getting to Know the Players
+### Berkeley DB
+The home page is http://www.oracle.com/technetwork/database/database-technologies/berkeleydb/overview/index.html
 
-Powerful abstractions are possible in this paradigm. They are more application focused than traditional RDMBS system, however. The developers will need to track things like changes and groupings manually.
+This is one of the grand daddies of the NoSQL systems. It is so old (conceptually) as to not even qualify as NoSQL according to some members of the community [^kv_bdb]. To others it is a NoSQL database [^kv_bdb_how_to]. I think it is too, so I included it. 
 
-Another evolutionary change is that K-V moves from embedded into a stand-alone server. The general idea is the same as the prokaryotic K-Vs with the minor exception that you have a bit more configuration to manage (what’s the IP/Port/Username/Etc). You also have to content with partition failures. Just as with a VS system that’s on a network, you might loose the network connection to your K-V. The benefit of server-based K-Vs is that you now can carve out a centralized location for data. You can make that server beefy so the K-V can keep most of the data in memory.
+It is an embeddable K-V. It runs as part of the memory space of the host applications. The host application accesses it via a C-lang binding. The C-lang binding allows many languages to use it outside of just C. 
 
-### Keeping the Values Around
-Persistence is one of those complex things that more advanced bacteria have. Important information is stored in the nucleus. Having a nucleus is also a feature of the K-Vs. Some store their information. Some do not.
+It is an impressive little system. Each release brings a new feature built on the previous layers. As a result there is a SQLite facade. This allows developers use to working with SQL to continue using SQL over BDB. Behind the scenes the SQL concepts are mapped to simple K-V entries.
 
-When evaluating how well a K-V might fit your application need, you need to question how much you need persistence as well as its type. You might find that you really only have transitory data. If you lost it at a minutes notice, you’d be fine. You might find that you need your data, but if you lost the last minute or so’s data you’d be okay. You might find that you really need the data to stick around in the case of a disaster. The K-V family has your back, but a particular instance might not. We’ll look at few of the major K-Vs as well as their characteristics.
+Recent improvements allow Berkeley DB to scale beyond a single host. Know as the Berkely DB HA, you get all of the distributed goodness on top of a simple programming API. It is a master-slave setup with automatic master selection.
 
-### Multi-Cellular K-Vs
-Many of the K-Vs out there are single server instances. Some allow redundancy by having a master-slave relationship. We’ve seen this before in the terminology chapter. This is where a primary datastore fails and a slave steps up to take its place.
+Depending on how you use it, Berkeley DB is immediately consistent since it is not, by default distributed. When running in HA, you can flip many switches to adjust consistency and read throughput. 
 
-In such a configuration, there is two or more nodes. When a client writes to a master, the write is passed along to one or more slaves. Ideally the write persists to both. If the master fails, the slave will pick up where the master left off.
+Oracle provides many white papers and blog posts on BDB. Here a just a few.
+* SQLite API - A Technical Evalutaiton http://www.oracle.com/technetwork/database/berkeleydb/learnmore/bdbvssqlite-wp-186779.pdf
+* Using Oracle Berkeley DB Java Edition as a Persistence Manager for the Goog Web Toolkit http://www.oracle.com/technetwork/articles/audet-bdb-gwt-096313.html
+* Berkeley DB Java Edition on Android http://www.oracle.com/technetwork/database/berkeleydb/bdb-je-android-160932.pdf
 
-How all of this happens is vendor specific. Make sure you check with the docs or the community to really understand how the K-V, if distributed, handles partitions and fail over.
+### Amazon DynamoDB
+The home page is http://aws.amazon.com/dynamodb/ 
 
-## When Would I Use This?
-While an inventive developer could use a K-V as the primary store for a complex e-commerce like Amazon.com (DynamoDB), most of the time a K-V is great for storing small, focused data for the application. Normally this is session data for web-based application or game.
+This is the fount of all modern NoSQL K-Vs. When the paper describing it came out in late 2007, it was not  available to public. Since then it was promoted to public service. You can't download and install Dynamo in your data servers.
 
-The session is keyed off of something really unique like a user’s name or email address. Depending on the K-V type, the value is either an opaque blob (could be JSON or XML) or a complex data structure like a list or a map of values.
+What's special about Dynamo is its management. Since it is tightly coupled to the AWS infrastructure, a database owner can automate processes like adding a new node to the cluster on demand through a nice web interface. It is also inexpensive to spin up a cluster to kick the tires then kill it off. 
 
-It can be useful in an enterprise setting to hold web session data so that you can properly handle failure of a web server. Let’s say you’re using a load balancer across three WebSphere servers. If  your application is using a session (it is if it’s old enough, like 2 years old), then your load balancer is probably using some sort of affinity. In this case if a user came into the session on Node 1, they will always return to Node 1. Even in a round robin balance, all the user return to their initial load server. All of their session state is on that *single* server.
+The API is more complex than the logical K-Vs we've discussed. Developers can query over an id. They can also scan over ids. This allows range searches.
 
-If you were to lose a server at this point, whoops...the user’s session is lost. Now let’s be honest, many users’ sessions are lost. This can cause untold issues in your application. Probably a bunch of 500 errors, a few calls to Help Desk and bunch of re-logins. That’s if your lucky. The application might solider on with a corrupt/missing session and start to really mess up the database.
+There are multiple implementations of the Amazon's paper that allow you get the similar features, but within your data center. Riak and Voldemort inspired by DynamoDB.
 
-To prevent this, a K-V server can get quietly dropped in. It is beyond the scope of this book to detail how, but a simple Google search for “java web implement session management redis” brings up more than one GitHub project for Tomcat and Jetty connectors. The same is true for .NET with “iis web implement session management redis”. I’m sure that there is a similar extension for Python and Ruby (for Python you probably just “import workingSession” and you’re done). In the case of the Java servers the configuration should be fairly seemless. As a result it should be possible to integration test adding the feature in a day or two.
+### Other Players
+* Riak - http://basho.com/riak/ A replicated K-V with a MapReduce chaser. 
+* Memcached - http://www.memcached.org/ Old standby for caching services. Large knowledge base and community support.
+* Project Voldemort - http://www.project-voldemort.com/voldemort/ Apache implementation of the DynamoDB concepts.
 
-Since session is safely stored outside of the server, you can fail over your web applications without much concern. Depending on the implementation of the connector, any changes to the session are first written locally and then persisted through to the backing store as part of a transaction. Your developers won’t have to worry about the details. You’re OPs guys won’t have to work about a really chatty network. You won’t have to worry because you spent just $6k on two Redis servers setup in master-slave.
+## So How Would We Use This?
+### Session Management
+Perhaps the most quintessential application of K-Vs is session management. User session information is a natural fit here. There is a session id. That is the key or part of the key. The value is whatever is needed. For example, a Java developer could use the session id as the key and store a complex Java object in the value. 
 
-## Sounds Great! What's the Catch?!
-The information here is a conglomeration of several K-V transactional semantics. You'll need too read the documentation for a specific server. There are some general concepts too keep in mind.
+The lifecycle of a session starts when a user logs in (or perhaps when they simply connect to your site). This creates an initial value or set of values on the application server. The value is pushed to the K-V. Whenever the session information is accessed, the K-V is read. User actions cause various changes to the session, like updating a shopping cart or increasing analytical values. When the session ends on the app server, it is possible to trigger an auto delete or session ETL into another data store like MySQL or MongoDB and then delete the session from the cache.
 
-### Transactions: I Don't Think That Word Means What You Think It Means
-In a RDBMS, a transaction means that everything within it happens or it doesn't. If you read from two tables and update three tables, those reads should be properly isolated; those changes should stick. If anything prevents the whole read/write set from occurring, the datastore should just forget it (rollback). 
+Open source helps organization leverage caching systems seamlessly. Multiple projects provide a means of integrating web session storage into Riak or Memcached near the beginning of the request pipeline. As a result most developers will not have to worry about where their session is stored. This frees them up to focus on the important things: the business problems.
 
-Some K-Vs support that concept. Berkley DB, for example, allows a transaction to start, multiple records to change and commit. In the event that any step fails, the whole thing is rolled back to the state before the transaction started. 
+### Fast Paced Data Landing
+Some applications generate high volumes of data. It could be user clicks. It could be requests for ad. K-Vs provide fast lookups and inserts. Distributed solutions provide the ability to grow your memory space to whatever size you require. Once the data is in the cluster a background service can ETL it into a permeant storage if necessary. 
 
-Other K-Vs, like Redis, have transactions, but don't have rollback. In this case transactions are more like batches. It's up to the application to the response codes to make sure that everything went according to plan. In the event of failure, the developer needs to take programatic steps to correct the database state. It behavior is against the common use of the word "transaction".
+Some of the K-Vs support MapReduce to perform (relatively simple) analytics in the K-V itself.
 
-Standard rule applies with K-Vs as it does with every other NoSQL: read the manual. 
+### Oddly Messaging
+Since Redis is kinda sorta a K-V, we'll look at one of its standout features: fast messaging between components using the Pub/Sub paradigm. Normally when one thinks messaging they think RabbitMQ, IBM MQ or MSMQ. Most of these are a complex protocol, often times binary. Redis' protocol is fairly straight forward and text based. Client register a channel to publish on. Other clients register on that channel to get content. The system is a firehose. If a client disconnects from the channel, it loses all of its messages. It doesn't guarantee delivery either. If you're willing to live within these parameters, you can create chat clients for your customer facing web sites with ease. Internally you can communicate anything with any component.
 
-## Products in the Family
-### Prokaryote In Real Life
-BerkleyDB is an embedded Key-Value store. It comes in several flavors. You can get it directly from the BerkleyDB project. You can also get it from Oracle in both C and Java builds. It's been around for 15+ years. It's battle tested. It is also under active development. Some flavors are more advanced. For example Oracle's version comes with an embedded SQLite database as well. 
+## Sizing and Cost Considerations
+When considering sizing and cost one must, now a days, look to Cloud vs Local. We'll first look at sizing locally within a company. Then we'll look at what major companies provide by way of cloud hosting.
 
-Since the application is embedded it will run within the same memory space as your application. This means if you store 4 GB of data in the database, and the database decides to load all 4 GB into memory, your application profile be whatever your application uses plus the 4-6 GB of memory required by the database.
+### Sizing on the Premises
+K-Vs are memory centric. The more memory you give them, the better they run. They are rarely CPU or local IO centric. As a result you should put your money into RAM. 
 
-A quick note on versions. There are a few out there. The most Berkley form, the one with Birkenstock and scarf, the K-V is embedded. There are two other version, Berkley DB Java Edition and Berkley DB XML. These are Oracle instances. They are not to be confused with the Berkley DB API for *Java*. The difference is the former is a Java-based implementation of the Berkley DB API. The later is an API to bind Java to the Berkley C API. It's a bit confusing. The reason why it matters is that the Berkley DB Java Edition allows for non-embedded deployment. You can even get High Availability (master-slave) deployments with it.
+Many companies find that a single K-V or K-V cluster can provide caching value to multiple applications. Another scenario is using the K-V for high volume writes and reads. In either case a fast network card or cards help.
 
-### Eukaryotic (ones with nucleus)
-Redis[^redis] is a full featured, server based K-V. It provides multiple data structure formats, atomic counter (multi-client safe number incrementers) as well as master-slave replication. 
+After that, sizing varies by need. Essentially you should get a server with 8 GB of RAM and a 100BASE-T network card. Depending on your level of failure response, you might consider adding a second NIC. Fortunately RAM is fairly cheap. Getting a single server with 16 GB should be cost effective.
 
-There are plugins for multiple platforms. This means that there is probably a client for your particular language. There are drivers for all of the big ones: Java, .NET, Ruby, Python, Node.JS and Erlang. On top of this, you'll find enhancement to standard stacks like JEE or IIS to persist session information seamlessly into Redis behind the scenes.
+If the K-V you're looking at supports sharding or replication, you might want to use it. You'll get better read throughput and possibly redundancy for fail over. Both are a good thing to have. If you go down the replication path, multiple your base server cost by the number of nodes.
 
-It is a well respected, open-source implementation with a good market share. Manning and other publishers have books available. The community is responsive to questions. Amazon Beanstalk also supports it as part of the service. 
+### Sizing on the Cloud
+Presently memory on AWS and Google hosts is rather expensive. If you want to standup your own Redis, Memcached, etc, you'll want to pick a configuration that supports high RAM, but doesn't cost you too much. An AWS `r3.large` presently offers 15 GB of RAM at $0.175 per hour used. Assuming your instance is on 24/7 with 30 average days per month, you'll spend $126/month to host the server. Costs go up as add storage fees. Fortunately most of the IO will be within AWS so you probably won't have to pay transfer fees. Google's n1-highmem-2 offers 13 GB of RAM at $0.164/hr. So the average monthly cost is $118.08 with a bit less head room. Keep in mind these numbers are per instance.
 
-It is a fully operational datastore. It offers persistence, tiering and replication. If your application fits this model, it could help save thousands of dollars on licensing fees when compared to traditional RDBMS. It's schemaless design may help get a project along quicker too. Rather than having to constantly update the older schema along with data migrations, each iteration of the software can add handlers for new and old data elements.
 
-## Foot Notes
-[^redis]: http://redis.io/
+
+## Further Resources
+* _The Architecture of Open Source Applications_ has a chapter on the Berkeley DB found at http://aosabook.org/en/bdb.html.
+* Data Modeling with Key Value NoSQL Data Stores - Interview with Casey Rosenthal found at Infoq.com http://www.infoq.com/articles/data-modeling-with-key-value-nosql-data-stores
+* Dynamo: Amazon's Highly Available Key-value Store found at http://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf 
+
+
+[^kv_bdb] http://www.oracle.com/technetwork/database/database-technologies/berkeleydb/overview/index.html
+[^kv_bdb_how_to] http://www.oracle.com/technetwork/articles/cloudcomp/berkeleydb-nosql-323570.html

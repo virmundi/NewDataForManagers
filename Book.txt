@@ -1,4 +1,8 @@
 ﻿introduction.md
 terms.md
 keyvaluestores.md
+columns.md
+documentstorage.md
+objects.md
+graphs.md
 attributions.md

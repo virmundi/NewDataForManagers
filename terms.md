@@ -2,7 +2,12 @@
 One of the fun parts about researching all of these technologies is learning their underlying theory. Authors go on and on about “My Other Cap is Theorem." They talk about the difference between ACID and BASE. Everything is about being distributed. It’s enough to make one’s head spin. Even series of Master level courses discuss these topics. Some might want to skip the terms and just see the ROI. However, you'll benefit by examining these terms first. Understanding the ideas is both part of the fun and part of the foundation of larger concepts. It is hard for a manager or developer to fully grok a tool or paradigm without first obtaining at least a basic understanding of that paradigm’s terminology. Fortunately, the terms are often shared across paradigms.
 
 ## Point Zero - Cluster?
-This is probably readily known, but should be stated for completeness, if nothing else. A cluster is a logical set of computers. Normally you need two. However many of the NoSQL systems work just fine as a cluster of one. You can add to it as time goes by. Depending on the implementation of the data store, you don’t even have to do much to get your data balanced and the whole system running smoothly across the computers.
+This is probably readily known, but should be stated for completeness, if nothing else. A cluster is a logical set of computers. You will probably call each computer a node. Normally you need two. However many of the NoSQL systems work just fine as a cluster with one node. You can add to it as time goes by. Depending on the implementation of the data store, you don’t even have to do much to get your data balanced and the whole system running smoothly across the nodes.
+
+## I Don't Care Who Made It as Long as It Works
+A common refrain you'll hear across the new data providers is "commodity hardware". These are server class computers. You should buy ECC RAM. The difference is that these boxes are a) inexpensive and b) interchangeable. They run standard linux. They don't carry special configurations like you'd see when using Oracle. Presently you can buy them in the 2k-5k range. It is certainly possible to run most of these systems on POS boxes sitting in a cubical (great for testing or boot strapping a startup). Just keep in mind that cheaper components break quicker.
+
+One of the goals on these distributed designs is to allow a node to fail without an OPs representative having to scramble to fix it. For example, at Yahoo! if a normal nodes goes down in one of their Hadoop clusters, it gets fixed during a normal repair cycle. As a result, if your cluster is large enough, quality is less of a factor. You want to aim for mid-quality. Too high brings little value; too low brings major headaches. 
 
 ## Where’s My Data
 The first thing that you’ll probably see in any discussion on most of these data stores is that these stores are distributed. You might have also seen it referred to as being horizontally scalable. During these conversations, you will have probably also seen a contrast to vertically scalable. Because of this, a reasonable place to start is with definitions for these terms.
@@ -56,7 +61,7 @@ Failure happens everyday. A powerful Oracle box suddenly goes offline due to a b
 
 Failure happens even more when you’re working in a shared/distributed system. Let’s say you’ve got a great system that has a slim chance meaning that it’s got a 99.9% chance of not failing. If you’ve got 40 nodes in a cluster you’ll have 3.9% chance that something will fail[^no_ca].
 
-Now you’ve got to figure out how you’re going to react to failure. Fortunately the Failure Reaction Triangle exists just like the Project Management Triangle[^pm_triangle]. This triangle is CAP. C stands for Consistency. A is Availability. P is Partition tolerance (T is not capitalized because it would be the CAPT theory and NoSQL folks tend to be pacifists; I’m making this part up). Like the Project Management Triangle, you get to pick two. Unlike the Project Management Triangle, CA is not possible<sup>6</sup>.
+Now you’ve got to figure out how you’re going to react to failure. Fortunately the Failure Reaction Triangle exists just like the Project Management Triangle[^pm_triangle]. This triangle is CAP. C stands for Consistency. A is Availability. P is Partition tolerance (T is not capitalized because it would be the CAPT theory and NoSQL folks tend to be pacifists; I’m making this part up). Like the Project Management Triangle, you get to pick two. Unlike the Project Management Triangle, CA is not possible[^no_ca].
 
 Consistency means that to an outside observer, like a database client, change events happen at single, logical point. This means that once a change is made to a record, all of the subsequent calls about that record reflect the change. 
 
@@ -71,7 +76,6 @@ You’ll need to have your team pay close attention to how the system figures ou
 You might also hear the phrase “eventual consistency”. In this model, a system will allow copies of a record to become outdated. A client might not get the latest update because the change may not have percolated out to all the copied nodes. Often times such systems have quorum settings in their drivers. If they do, the client to the datastore will poll multiple nodes (this is the quorum). If X nodes come back with the same answer, the client will take that. 
 
 
-## Foot Notes
 [^moores_law]: http://en.wikipedia.org/wiki/Moore's_law
 [^note_on_management_nodes]: This presumes that the data store doesn’t have a single management node. If it does, then you’re in as much trouble as in a Vertically Scalable system.
 [^free_beer]: Free as in Beer, of course.

@@ -22,7 +22,7 @@ The book is divided into three major sections.
 
 The first section provides an introduction to the terms. Here, we’ll discuss topics like ACID, BASE, Master->Master, etc. Most of these terms apply to more than one of the paradigms. Rather than explaining them within a context of a particular paradigm, and thus forcing a reading order, they are all front-loaded.
 
-The second section looks at NoSQL families. By my estimation, NoSQL has five major families in addition to some hybridized versions. Those families are: Key-Value, Document, Columnar, Graph and Object databases. For each member we’ll discuss: 
+The second section looks at NoSQL families. By my estimation, NoSQL has five major families in addition to some hybridized versions. Those families are: Key-Value,  Columnar, Document, Graph and Object databases. For each member we’ll discuss: 
 
 + The architecture
 + Common use-case applications
