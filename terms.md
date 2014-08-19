@@ -29,10 +29,21 @@ HS systems provide some form of failover, but you really have to look to see wha
 
 Another point of failover is how the clients are updated. Many of the HA solutions have a client that knows about each node or at least a majority of the nodes in the cluster. If a node goes down, the client black lists the node. When the node returns to good health, the client corrects its list.
 
+## When the Shard Hits the Fan, We Might Replicate That
+Two terms that everyone must know is _shard_ or _sharding_ and _replication_. Often they are treated as if equivalent. They are not. They are orthogonal to each other. Sometimes you need one or both.
+
+Sharding is when you split a large dataset across multiple nodes. Each data entry has a _shard key_. Often this is the Primary Key (PKs) to borrow from the RDBMS terms. The shard key identifies which of the nodes owns the data. As with PKs, _shard keys_ provide the fastest lookup mechanism for a particular document. Like PKs from their relational brothers, the key may be generated automatically or derived from the data itself.
+
+A natural example of sharding is signing into some large event like school registration day or a conference. The reception tables are split into groups like last names A-F, G-O, P-Z. We've got three shards. Ideally this grouping handles about the same number of people per group to get the best throughput into the event.
+
+Replication is the process of copying data to more than one place. Its the same data. Each copy is called a _replica_. Normally you want to have replicas in different nodes. While there is added cost in nodes and their respective storage, there are at least two benefits. The first is you've got a backup of the data. At fail over, one of the replicas can set in for the failed node without much interruption. The other benefit is throughput on reads. If the client and data store support it, the client can read from a replica either directly or via a proxy off of a main node. If a particular replica is busy serving a prior request, another server can happily respond to a new request. If your application is read heavy, replication like this might provide a good performance boost.
+
+How the system replicates is a function of the data store. Some stores have all writes go to a single master. The master might concurrently write to replicas. It might write to itself and then to the replicas. It might concurrently write to itself and the replicas. The exact whys and wherefores impact data consistency. We'll cover consistency later in the chapter. Just keep an eye out the particulars when evaluating your needs and what the specific data stores provide.
+
 ## Election - I’m the President! No! I AM!
 If  something happens to the President of the United States, there is a law that defines who gets the job next. Presently (2014) there are 16 possible slots with 2 slots unfilled. As per the law, vacant spots are skipped. This law is rather algorithmic. Each case is defined with a codified response. How much more important is your data? 
 
-In the case of a master-slave system (even master-master where a master has slaves), a new master must be elected in the case of, say, a master dying from cracking corn. Each distributed system has its own means for doing this. Their documentation will describe the specific algorithm for election. Once a new master is elected, the clients to the system should redirect to the new master for all of the writes, if not all of the reads.
+In the case of a master-slave system (even master-master where a master has slaves), a new master must be elected in the case of, say, a master dying from a blue tail fly. Each distributed system has its own means for doing this. Their documentation will describe the specific algorithm for election. Once a new master is elected, the clients to the system should redirect to the new master for all of the writes, if not all of the reads.
 
 ## Dropping ACID to Free[^note_on_management_nodes]-BASE
 There are two terms here. The first is ACID. The second is BASE. 
