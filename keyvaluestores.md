@@ -101,7 +101,7 @@ Since Redis is kinda sorta a K-V, we'll look at one of its standout features: fa
 ## Sizing and Cost Considerations
 When considering sizing and cost one must, now a days, look to Cloud vs Local. We'll first look at sizing locally within a company. Then we'll look at what major companies provide by way of cloud hosting.
 
-### Sizing on the Premises
+### On Premises
 K-Vs are memory centric. The more memory you give them, the better they run. They are rarely CPU or local IO centric. As a result, you should put your money into RAM. 
 
 Many companies find that a single K-V or K-V cluster can provide caching value to multiple applications. Another scenario is using the K-V for high volume writes and reads. In either case a fast network card or cards help.
@@ -110,7 +110,7 @@ After that, sizing varies by need. Essentially, you should get a server with 8 G
 
 If the K-V you're looking at supports sharding or replication, you might want to use it. You'll get better read throughput and possibly redundancy for fail over. Both are a good thing to have. If you go down the replication path, multiple your base server cost by the number of nodes.
 
-### Sizing on the Cloud
+### In the Cloud
 Presently memory on AWS and Google hosts is rather expensive. If you want to standup your own Redis, Memcached, etc, you'll want to pick a configuration that supports high RAM, but doesn't cost you too much. An AWS `r3.large` presently offers 15 GB of RAM at $0.175 per hour used. Assuming your instance is on 24/7 with 30 average days per month, you'll spend $126/month to host the server. Costs go up as with storage fees. Fortunately most of the IO will be within AWS so you probably won't have to pay transfer fees. Google's `n1-highmem-2` offers 13 GB of RAM at $0.164/hr. So the average monthly cost is $118.08 with a bit less head room. Keep in mind these numbers are per instance.
 
 Now the question is _should you stand up your K-V?_ On AWS you can use DynamoDB. Their pricing model shows that a small to mid-size site should probably cost around $7.50 [^kv_aws_ddb_pricing]/month. Since DynamoDB is persistent with more advanced modeling features, it could be your only datastore. Google offers a similar service partially for free using Memcache in the AppEngine space. The free version gives you unlimited storage in a Memcache pool. Sadly, nothing is ever free-free. Your items in the Memcache pool may be evicted at anytime depending on Google's needs. Might not sound useful, but every cache hit is a performance gain. You can also pay $0.06 per GB per hour for a dedicated Memcache pool. So a 24/7 30 days/month instance runs about $43.20.
