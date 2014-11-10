@@ -73,15 +73,22 @@ For more information please go to [http://www.arangodb.com](http://www.arangodb.
 
 Cloudant is a flavor of CouchDB. Being a CouchDB means that you get an interesting solution for offline data synchronization and replication. Cloudant takes this a step further by providing a great management interface across the cluster.
 
-Cloudant provides a great scaling story. When you review their case studies you'll see how they've helped companies scale from a one node RDBMS to a 200 node system will low query latency while having gigs and gigs of data at rest.
+Cloudant has a great history of scaling stories. When you review their case studies you'll see how they've helped companies scale from a one node RDBMS to a 200 node system with low query latency while having gigs and gigs of data at rest.
 
-Recently IBM purchased Cloudant. This might make the idea of using it more palatable in the enterprise space.
+Traditionally Cloudant, as its name indicates, is a platform-as-a-service provider. Your data is hosted in a secured cluster within the Cloudant data centers. They are responsible for managing the day-to-day operations of the database. Your company can then focus on writing software. If your company prefers to manage their platforms, you're in luck. In October 2014, IBM announced a new [on-premise](https://cloudant.com/blog/introducing-cloudant-local/#.VGDX9vTF9hs) option.
+
+Recently IBM purchased Cloudant. This might make the idea of using it more palatable in the enterprise space. I know many a manager sleeps better at night knowing there is a Batphone (Bluephone?) to IBM if they need it.
 
 For more information visit [https://cloudant.com](https://cloudant.com)
 
 ### MongoDB
 
-This is probably the most know of the 
+This is probably the most known of the document stores. It helped popularize the NoSQL movement (and some of the backlash against it). It is going strong through the efforts of the people at MongoDB, Inc.
+
+MongoDB uses a proprietary storage format called BSON (Binary JSON). It allows the system to more efficiently interact with the data as well as reduce storage size. 
+
+MongoDB is centered around the cluster. It is rare to see community discussion around a single node MongoDB deploy. Often the recommend production configuration is three nodes: one master and two slaves. As a result you might have a larger upfront cost associated with the initial deployment.
+ 
 
 ## So How Would We Use This?
 
