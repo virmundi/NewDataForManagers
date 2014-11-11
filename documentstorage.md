@@ -1,8 +1,8 @@
 # Document Storage
 
-When developers in the OO world work with traditional databases, they will often load the data into objects. The objects model the problem at a domain level. The database models the problem in a normalized, relational way. The interaction between the two layers doesn't quite fit. This is called the *object-relational impedance mismatch*[^oo_rel_mismatch]. 
+When developers in the OO world work with traditional databases, they will often load the data into domain objects. Object trees can have complex aggregates of data like a `Person` with a list of `Address`. The database models the problem in a normalized, relational way. The interaction between the two layers doesn't quite fit. This is called the *object-relational impedance mismatch*[^oo_rel_mismatch]. 
 
-At the same time, code is more flexible than a relational database. To add a field to an object normally requires just typing in the field and auto-generating the accessors. A database requires tables to be created, altered and migrated. Great tools like the Hibernate family or Rails mitigate the issue, but the team must plan and execute migrations. Document Storage seeks to bring that ease of change into the database world.
+At the same time, code is more flexible than a relational database. To add a field to an object normally requires just typing in the field and auto-generating the accessors. A database requires tables to be created, altered and migrated. Great tools like the Hibernate family or Rails mitigate the issue, but the team must plan and execute migrations. Document Storage seeks to bring ease of code changes to the database.
 
 ## Architecture
 The heart of a document store is the idea of a document. A document is simply a holder of one or more key-value pairs. What makes documents distinct from a K-V storage is that the datastore knows how to interact with a document structure. Unlike a K-V store, the database knows what structure a given document has. It knows document fields. As such you can query against them. 
@@ -23,9 +23,9 @@ How the document store actually stores the data is really dependent on the imple
     }
 ~~~~~~~~
 
-though they are seldom pretty formatted when actually saved. There is a derivative of JSON called BSON (Binary JSON). They can also be shaped documents which is like JSON, but the actual field names are not stored for the document, rather document has a shape id. This kinda normalizes the shape information to reduce storage size.
+though they are seldom pretty formatted when actually saved. There is a derivative of JSON called BSON (Binary JSON). BSON records are more space efficient since they are binary. Documents can also be shaped which is like JSON, but the actual field names are not stored for the document, rather document has a shape id. Storage requirements are less if multiple document can share the same shape information..
 
-Documents exist within a Collection. A collection is simply a named container for one or more documents. A collection is equatable to a table in the RDBMS world. 
+Documents exist within a Collection. A collection is simply a named container for one or more documents. A collection is equatable to a table in the RDBMS world with the significant difference that the documents do not have to have the same structure.
 
 A Database houses one or more collections. They are also responsible for housing meta data about user rights, indexes and other meta concerning the management of the records. 
 
@@ -63,7 +63,7 @@ It presently supports scaling via replication and sharding. Replication is async
 
 The ArangoDB team wants to make rapid prototyping easy. Rather than having to have a web server and document database, you can use Foxx, an embedded, Node.js like, web environment.  This allows you to wrap your database queries with a REST interface. Now you've got less communication between the backends and shared resources too! The client doesn't know that it's calling Arango. If you find that Foxx no longer meets your needs, you can tier the application without impacting your clients.
 
-What makes ArangoDB standout is its query language AQL. AQL provides a SQL like expressions for filtering, updating documents. Unlike other document stores, AQL allows joining documents. This helps to limit the number of return calls to the database to perform the join in the application. AQL also makes the database much more accessible to business analysts and BI professionals. While there is a learning curve to AQL, it is SQL-like. In no time your analysts should be comfortable with AQL queries as they are with SQL.
+What makes ArangoDB standout is its query language AQL. AQL provides a SQL like expressions for filtering and updating documents. Unlike other document stores, AQL allows joining documents. This helps to limit the number of return calls to the database to perform the join in the application. AQL also makes the database much more accessible to business analysts and BI professionals. While there is a learning curve to AQL, it is SQL-like. In no time your analysts should be comfortable with AQL queries as they are with SQL.
 
 Finally, ArangoDB supports multi-document transactions. I believe this is the only such database to provide that feature. While not as advanced as an Oracle or SQL Server transaction, ArangoDB allows a client to send a batch of changes to the database. They are either all committed or they all fail.
 
@@ -77,7 +77,7 @@ Cloudant has a great history of scaling stories. When you review their case stud
 
 Traditionally Cloudant, as its name indicates, is a platform-as-a-service provider. Your data is hosted in a secured cluster within the Cloudant data centers. They are responsible for managing the day-to-day operations of the database. Your company can then focus on writing software. If your company prefers to manage their platforms, you're in luck. In October 2014, IBM announced a new [on-premise](https://cloudant.com/blog/introducing-cloudant-local/#.VGDX9vTF9hs) option.
 
-Recently IBM purchased Cloudant. This might make the idea of using it more palatable in the enterprise space. I know many a manager sleeps better at night knowing there is a Batphone (Bluephone?) to IBM if they need it.
+Recently IBM purchased Cloudant. This might make the idea of using it more palatable in the enterprise space. Many a manager sleeps better at night knowing there is a Batphone (Bluephone?) to IBM if they need it.
 
 For more information visit [https://cloudant.com](https://cloudant.com)
 
@@ -85,19 +85,20 @@ For more information visit [https://cloudant.com](https://cloudant.com)
 
 This is probably the most known of the document stores. It helped popularize the NoSQL movement (and some of the backlash against it). It is going strong through the efforts of the people at MongoDB, Inc.
 
-MongoDB uses a proprietary storage format called BSON (Binary JSON). It allows the system to more efficiently interact with the data as well as reduce storage size. 
+ MongoDB is deployed in 30 of the 100 largest companies in the world. Each iteration of the product brings new features and performance improvements. Most recently 2.6 brought about improved performance, better query planning and enhanced security integration for the enterprise such as LDAP.
 
-MongoDB is centered around the cluster. It is rare to see community discussion around a single node MongoDB deploy. Often the recommend production configuration is three nodes: one master and two slaves. As a result you might have a larger upfront cost associated with the initial deployment.
- 
+MongoDB, Inc and others provide service and support for both on-premise and cloud installations. There is also a vibrant community ready to answer questions in forums, IRC and Stack Overflow.
+
+For more information please visit [https://www.mongodb.org](https://www.mongodb.org).
 
 ## So How Would We Use This?
 
-### There Is No Spoon
+### First: There Is No Spoon
 Since this is a semi-technical book, I'm duty bound to have a Matrix reference. Neo talks to a little, white boy dressed as a Tibetan monk about the reality of cutlery. The child's goal was to impress upon Neo that his world view needed to shift in order to absorb reality of the Matrix. So too your baggage around modeling data from the RDBMS world.
 
-The first thing that you have to accept is that modeling a document store is different than relational modeling. Relational modeling uses normalization to link various tables together. Let's look at a relational model for the person. There is a Person table with columns F_NAME VARCHAR(20), L_NAME VARCHAR(20, ID INT PK. There is an Address table with columns ID INT PK, STREET VARCHAR(20), CITY VARCHAR(30). Finally there is a PersonAddress table with columns P_ID FK, A_ID FK. If your application normally shows a person with their addresses, two joins are necessary Person -> PersonAddress <-Address. Given the domain rule that we show a person with their address a document might model like we saw above. Some documents might have a list of addresses. Some documents might have a single, non-list entry. The exact details are left up to the application it stores the information.
+The first thing that you have to accept is that modeling a document store is different than relational modeling. Relational modeling uses normalization to knit various tables together. Let's look at a relational model for the person. There is a Person table with columns F_NAME VARCHAR(20), L_NAME VARCHAR(20, ID INT PK. There is an Address table with columns ID INT PK, STREET VARCHAR(20), CITY VARCHAR(30). Finally there is a PersonAddress table with columns P_ID FK, A_ID FK. If your application normally shows a person with their addresses, two joins are necessary Person -> PersonAddress <-Address. Most likely you'll have a Person document with keys for `FNAME`, `LNAME and a list of Addresses.
 
-Modeling directly impacts the need for transactions. In the section on *Dropping ACID in order to FREE-BASE* we saw that ACID might not be necessary for my data functions. In the relational world adding a new address to a person, say their work address, requires modify two tables: Address and PersonAddress. To be safe, a transaction is started before the write and only completes when the database promises that it persistently wrote to the two tables. Contrast this behavior with a document change. We would essentially only PATCH (in REST parlance) the document. Transactions in every document store I've researched are ACID at the document level. Either the document is update in whole or its not. There is no partial state. 
+Modeling directly impacts the need for transactions. In the section on *Dropping ACID in order to FREE-BASE* we saw that ACID might not be necessary for many data functions. In the relational world adding a new address to a person, say their work address, requires modify two tables: Address and PersonAddress. To be safe, a transaction is started before the write and only completes when the database promises that it persistently wrote to the two tables. Contrast this behavior with a document change. We would essentially only PATCH (in REST parlance) the document. Transactions in every document store I've researched are ACID at the document level. The update either does or does not. There is no try.
 
 ### Daily OLTP Work
 Many companies find the modeling power of documents eases the *object-relational impedance mismatch*. If your in a JavaScript-all-the-way-down shop built on Node.js, there is no mismatch. Your developers work entirely in JSON. Clojure shops will experience the same benefit due to JSON being easily mapped into MAPs and VECTORs, etc.
@@ -108,10 +109,10 @@ If your work load is heavily read oriented, clients reading from replicas will d
 
 While many BI tools are racing to catch up with document databases, power users leverage them daily to run sophisticated reporting across the cluster. Map-Reduce found in Couchbase, Cloudant, and MongoDB allow developers to write programatic queries that run across all cluster in parallel. ArangoDB's AQL aim to provide the power of Map-Reduce with the expressiveness of SQL. 
 
-Because the databases horizontally scale, reporting can run much more quickly than in traditional database. It is possible to setup replicas just for reporting. Let's say that one out of three nodes in a replica set are used just for reporting. The OLTP clients only know about the other two nodes. Now you can quickly manage system clients while also quickly answer business queries without having to setup an offline data warehouse. 
+Because the databases horizontally scale, reporting can run much more quickly than in traditional database. It is possible to setup replicas just for reporting. Let's say that one out of three nodes in a replica set are used just for reporting. The OLTP clients only know about the other two nodes. Now you can quickly manage system clients while also quickly answering business queries without having to setup an offline data warehouse. 
 
 ### Archive Management
-MongoDB helped Craigslist comply with regulatory requirements. Craigslist provides online ads for a variety of consumer needs. Everyday they server thousands of ads to the Internet. They also have to track meta-data about the ad content for a period of a few years. Upgrading the scheme caused the single database system to slow due to having to update the meta-data of the historical records. At the same time Craigslist wanted to reduce database administration costs.
+MongoDB helped Craigslist comply with regulatory requirements. Craigslist provides online ads for a variety of consumer needs. Everyday they server thousands of ads to the Internet. They also have to track meta-data about the ad content for a period of a few years. Upgrading the schema caused the single database system to slow due to having to update the meta-data of the historical records. At the same time Craigslist wanted to reduce database administration costs.
 
 MongoDB's ability to shard and replicate the data allowed the rapid storage and retrieval of 10 TB of documents. The schemeless nature of documents enables easy generational versioning. If a new generation needs to add one or more fields, it can. If they wish to consolidate fields, they can. It is up to the consumer of the data to manage differences between generations.
 
@@ -140,7 +141,7 @@ When clustering, follow the manual or community recommendations around network c
 
 ### On Premise
 
-A commodity server with 4-8 GB of RAM should provide the core node configuration. At the time of this writing, adding for SSDs to the box will cost about $800-$1,000 US and provide 1 TB of storage. 
+A commodity server with 4-8 GB of RAM should provide the core node configuration. At the time of this writing, adding four SSDs to the box will cost about $800-$1,000 US and provide 1 TB of storage. 
 
 ### In the Cloud
 
@@ -149,6 +150,8 @@ A reasonable default configuration for a cloud server is at least 1 GB of RAM fo
 Check the manual of the document store you're picking. They will have different takes on how to configure a server or cluster in the cloud. Expect to get slower performance from I/O where the disk is not actually part of the server you're renting. For example EBS drives in AWS have wild performance characteristics. To even them out, you'll need RAID. If your cloud host offers physical disks like Linode or Digital Ocean you'll get better performance, but limited storage.
 
 You'll want servers with a good amount of RAM. If the document store is able to cache most of the records in memory, you'll get great performance regardless of instance or networked physical storage.
+
+Cloudant and MongoDB have cloud offerings. In fact, MongoDB has multiple (hosting companies)[http://www.mongodb.com/partners/cloud]. They manage the heavy lifting and cluster management. Because it is the focus, they are able to help you tune your install as needed.
 
 [^oo_rel_mismatch]: http://en.wikipedia.org/wiki/Object-relational_impedance_mismatch
 [^mongo_craigslist]: http://www.mongodb.com/customers/craigslist

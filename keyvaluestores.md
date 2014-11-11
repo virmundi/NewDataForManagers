@@ -46,6 +46,7 @@ Recent improvements allow Berkeley DB to scale beyond a single host. Know as the
 Depending on how you use it, Berkeley DB is immediately consistent since it is not, by default distributed. When running in HA, you can flip many switches to adjust consistency and read throughput. 
 
 Oracle provides many white papers and blog posts on BDB. Here a just a few.
+
 * SQLite API - A Technical Evalutaiton http://www.oracle.com/technetwork/database/berkeleydb/learnmore/bdbvssqlite-wp-186779.pdf
 
 * Using Oracle Berkeley DB Java Edition as a Persistence Manager for the Google Web Toolkit http://www.oracle.com/technetwork/articles/audet-bdb-gwt-096313.html
@@ -53,6 +54,7 @@ Oracle provides many white papers and blog posts on BDB. Here a just a few.
 * Berkeley DB Java Edition on Android http://www.oracle.com/technetwork/database/berkeleydb/bdb-je-android-160932.pdf
 
 ### Amazon DynamoDB
+
 The home page is http://aws.amazon.com/dynamodb/ 
 
 This is the fount of all modern NoSQL K-Vs. When the paper describing it came out in late 2007, it was not  available to public. Since then it was promoted to public service. You can't download and install Dynamo in your data servers.
@@ -118,9 +120,12 @@ Now the question is _should you stand up your K-V?_ On AWS you can use DynamoDB.
 
 ## Further Resources
 * _The Architecture of Open Source Applications_ has a chapter on the Berkeley DB found at http://aosabook.org/en/bdb.html.
+
 * Data Modeling with Key Value NoSQL Data Stores - Interview with Casey Rosenthal found at
 http://www.infoq.com/articles/data-modeling-with-key-value-nosql-data-stores
+
 * Dynamo: Amazon's Highly Available Key-value Store found at http://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf 
+
 * Comparison of ZeroMQ and Redis by Stephen McDonald 
 http://blog.jupo.org/2013/02/23/a-tale-of-two-queues/
 
