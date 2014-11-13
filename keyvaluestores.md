@@ -1,7 +1,7 @@
 # Key-Value Stores
 Key-Value stores (K-V) are perhaps the simplest of the NoSQL solutions, at least logically. Most developers use maps or dictionaries in their everyday coding. Key-Value stores are an expansion of this idea. Another term for Key-Value is a Distributed Hash Table. As well see, a K-V is a lot like an old Rolodex. The key is the person's last name. The value is their contact information. Knowing the last name allows you to quickly jump to the proper location in the Rolodex. 
 
-K-Vs are everywhere. You can get them for mobile, for the server side and even in HTML5. Where they lack in complexity, K-Vs make up for it with their ubiquity. Depending on your application or system needs using K-Vs through the stack can lead to less mental overhead since developers won't have to jump between different persistence models.
+K-Vs are everywhere. You can get them for mobile, for the server side and even in HTML5. What they lack in complexity, K-Vs make up for it with their ubiquity. Depending on your application or system needs using K-Vs through the stack can lead to less mental overhead since developers won't have to jump between different persistence models.
 
 ## Architecture
 At the core is an incredibly simple, yet powerful abstraction: keys and their values. A key is a set of bits that uniquely identifies a thing. That thing is called the value. It too is simply a set of bits. The most rudimentary key-value stores don't attempt to know what's in the key or in the value. Both are opaque to the storage mechanism. A key might be the string "name" with a value of "Patrick". Another key might be the hex number 0xBEEF with the value of "It's what's for dinner". The data store doesn't force any representational semantics on the developer.
@@ -27,7 +27,7 @@ So far we've really just talked about a single node system. In the early days, K
 
 As we'll see in the Product Overviews section, a K-V can store its information in memory or persistently to a disk. There are tradeoffs and design considerations with either mechanism. Pure memory options are useful for pure speed. They are also purely transient. If the box suffers a power outage, everything in memory will probably be lost. This might not be a bad thing&trade;. When the K-V persists it must  slow down some in order write. How much of a slow down is product specific. The benefit is that while slower, you're system can survive a reboot.
 
-Most of the K-Vs are transactional at the key level. This means that when you put a value for a key, you either put the whole value or you won't. It is not possible for a partial write to occur. The same is true for a read. You cannot read a partially added value. For example, say you wanted to `put` the value `Bob` in the key "&lt;usersession&gt;.firstname". It is not possible even during failure to write `Bo` or `B`. When a client of a K-V requests &lt;usersession&gt;.firstname the system will either return an empty response (if it hasn't got a value or if the value is removed) or it will return `Bob`. It can't return `B`.
+K-Vs are transactional at the key level. This means that when you put a value for a key, you either put the whole value or you won't. It is not possible for a partial write to occur. The same is true for a read. You cannot read a partially added value. For example, say you wanted to `put` the value `Bob` in the key "&lt;usersession&gt;.firstname". It is not possible even during failure to write `Bo` or `B`. When a client of a K-V requests &lt;usersession&gt;.firstname the system will either return an empty response (if it hasn't got a value or if the value is removed) or it will return `Bob`. It can't return `B`.
 
 ## Getting to Know the Players
 
@@ -61,9 +61,9 @@ This is the fount of all modern NoSQL K-Vs. When the paper describing it came ou
 
 What's special about Dynamo is its management. Since it is tightly coupled with the AWS infrastructure, a database owner can automate processes like adding a new node to the cluster on demand through a nice web interface. It is also inexpensive to spin up a cluster to kick the tires then kill it off. 
 
-The API is more complex than the logical K-Vs we've discussed. Developers can query over an id. They can also scan over ids. This allows range searches.
+The API is more complex than the logical K-Vs we've discussed. Developers can query by id. They can also scan over ids for searches.
 
-There are multiple implementations of the Amazon's paper that allow you get the similar features, but within your data center. Riak and Voldemort inspired by DynamoDB.
+There are multiple implementations of the Amazon's paper that allow you get the similar features, but within your data center like Riak and Voldemort..
 
 ### Redis
 The home page is http://redis.io/.
@@ -88,7 +88,7 @@ This is something that can get lost in the simplicity of it all. If you have inf
 ### Session Management
 Perhaps the most quintessential application of K-Vs is session management. User session information is a natural fit here. There is a session id. That is the key or part of the key. The value is whatever is needed. For example, a Java developer could use the session id as the key and store a complex Java object in the value. 
 
-The lifecycle of a session starts when a user logs in (or perhaps when they simply connect to your site). This creates an initial value or set of values on the application server. The value is pushed to the K-V. Whenever the session information is accessed, the K-V is read. User actions cause various changes to the session, like updating a shopping cart or increasing analytical values. When the session ends on the app server, it is possible to trigger an auto delete or session ETL into another data store like MySQL or MongoDB and then delete the session from the cache.
+The lifecycle of a session starts when a user logs in (or perhaps when they simply connect to your site). This creates an initial value or set of values on the application server. The value is pushed to the K-V. Whenever the session information is accessed, the K-V is read. User actions cause various changes to the session, like updating a shopping cart or increasing analytical values. When the session ends on the app server, it is possible to trigger an auto delete or session ETL into another data store like MySQL or MongoDB and then delete the session from the K-V cache.
 
 Open source helps organization leverage caching systems seamlessly. Multiple projects provide a means of integrating web session storage into Riak or Memcached near the beginning of the request pipeline. As a result, most developers will not have to worry about where their session is stored. This frees them up to focus on the important things: the business problems.
 
@@ -98,7 +98,7 @@ Some applications generate high volumes of data. It could be user clicks. It cou
 Some of the K-Vs support MapReduce to perform (relatively simple) analytics in the K-V itself. As a result it's possible track real-time or near real-time information like leader boards and dashboards.
 
 ### Oddly, Messaging
-Since Redis is kinda sorta a K-V, we'll look at one of its standout features: fast messaging between components using the Pub/Sub paradigm. Normally when one thinks messaging they think RabbitMQ, IBM MQ or MSMQ. Most of these are a complex protocol, often times binary. Redis' protocol is fairly straight forward and text based. Clients register to a channel to publish. Other clients register on that channel to listen. The system is a firehose. If a client disconnects from the channel, it loses all of its messages. It doesn't guarantee delivery either. If you're willing to live within these parameters, you can create chat clients for your customer facing web sites with ease. Internally you can communicate anything with any component.
+Since Redis is a super K-V, we'll look at one of its standout features: fast messaging between components using the Pub/Sub paradigm. Normally when one thinks messaging they think RabbitMQ, IBM MQ or MSMQ. Most of these are a complex protocol, often times binary. Redis' protocol is fairly straight forward and text based. Clients register to a channel to publish. Other clients register on that channel to listen. The system is a firehose. If a client disconnects from the channel, it loses all of its messages. It doesn't guarantee delivery either. If you're willing to live within these parameters, you can create chat clients for your customer facing web sites with ease. Internally you can communicate anything with any component.
 
 ## Sizing and Cost Considerations
 When considering sizing and cost one must, now a days, look to Cloud vs Local. We'll first look at sizing locally within a company. Then we'll look at what major companies provide by way of cloud hosting.
@@ -110,7 +110,7 @@ Many companies find that a single K-V or K-V cluster can provide caching value t
 
 After that, sizing varies by need. Essentially, you should get a server with 8 GB of RAM and a 100BASE-T network card. Depending on your level of failure response, you might consider adding a second NIC. Fortunately RAM is fairly cheap. Getting a single server with 16 GB should be cost effective.
 
-If the K-V you're looking at supports sharding or replication, you might want to use it. You'll get better read throughput and possibly redundancy for fail over. Both are a good thing to have. If you go down the replication path, multiple your base server cost by the number of nodes.
+If the K-V you're looking at supports sharding or replication, you might want to use it. You'll get better read throughput and possibly redundancy for fail over. Both are a good thing to have. If you go down the replication path, multiply your base server cost by the number of nodes.
 
 ### In the Cloud
 Presently memory on AWS and Google hosts is rather expensive. If you want to standup your own Redis, Memcached, etc, you'll want to pick a configuration that supports high RAM, but doesn't cost you too much. An AWS `r3.large` presently offers 15 GB of RAM at $0.175 per hour used. Assuming your instance is on 24/7 with 30 average days per month, you'll spend $126/month to host the server. Costs go up as with storage fees. Fortunately most of the IO will be within AWS so you probably won't have to pay transfer fees. Google's `n1-highmem-2` offers 13 GB of RAM at $0.164/hr. So the average monthly cost is $118.08 with a bit less head room. Keep in mind these numbers are per instance.
