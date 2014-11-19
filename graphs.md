@@ -92,6 +92,17 @@ Graph databases bounce from node to node just like a dedicated follow of fashion
 
 ## Sizing and Cost Considerations
 
+Graph databases are system intensive. They prefer to keep the entire graph in memory. Calculating node relations can eat the CPU. If the data doesn't fit into memory, they might have go to disk a lot. As a result, you'll need to start with a fairly large, commodity server.
+
+### On Premise
+
+The form factor of the server doesn't really matter. Choose whatever fits your deployment best. At its heart the server should have a Xeon with 8 GB of ECC RAM. You'll have fewer worries about data corruption this way (if you're not that worried about, an i7 is fine too). 
+
+Prefer SSDs over magnetic disks. When a graph database starts cold, it has to pull the entire graph into memory. SSDs will make this much faster enabling. The size is dependent on your storage needs. You can get a production SSD with 500 GB of storage for around $300.
+
+### In the Cloud
+
+
 ## Further Resources
 
 * For an in-depth look at graph theory, checkout the free ebook at http://graphdatabases.com. It's from the makers of Neo4J so you know it's got to be good.
