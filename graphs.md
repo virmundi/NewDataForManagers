@@ -1,27 +1,27 @@
 # Graph Storage
-Relational databases use set theory to model entities and their relationships.  Each entity is related to another via a column or set of columns. For example, person's home ownership might be modeled by a Person table with an id column, an Address table with an id column and a junction table with a PERSON_ID and ADDRESS_ID column. The junction table is the relation.
+Relational databases use set theory to model entities and their relationships.  Each entity is related to another via a column or set of columns. For example, person's home ownership might be modeled by a **PERSON** table with an **ID** column, an **ADDRESS** table with an **ID** column and a junction table with a **PERSON_ID** and **ADDRESS_ID** column. The junction table is the relation.
 
 Graph databases at first glance look similar. There are entities and relationships. Users move from one to another using a query language. The difference lies in how relationships are modeled. The result is massive speedup in queries around relationships when compared to the relational model.
 
 ## Architecture
 
-The core concept of a graph database is so simple as to be laughable. There are only two things involved in modeling: nodes and edges (or vertices and relationships depending on whose literature you read). As you can use points and lines to draw stickmen to the Sistine Chapel, you can model simple relations to complex distribution webs.
+The core concept of a graph database is so simple as to be laughable. There are only two things involved in modeling: nodes and edges (or vertices and relationships depending on whose literature you read). As you can use points and lines to draw everything from a stickmen to the Sistine Chapel, you can model simple relations to complex distribution webs.
 
-A node is a just a container for properties like `name` or `birthdate`. A node can have as many properties as you need. An edge is the thing that connects two nodes. These are named concepts. Getting back to our home ownership above, one node would be "Patrick Davenport". Another is "The Lone Palm". The relationship of "Owns" links me to the house. 
+A node is a just a container for properties like `name` or `birthdate`. A node can have as many properties as you need. An edge is the thing that connects two nodes. These are named concepts. Getting back to our home ownership above, one node would be **"Patrick Davenport"**. Another is **"The Lone Palm"**. The relationship of **"Owns"** links me to the house. 
 
-Edges can have properties too. The "Owns" relationship might have the date I purchased the home. It could be marked as my primary house as opposed to my other vast real-estate holdings. Edges also have a direction. I Own Lone Palm; the house doesn't own me.
+Edges can have properties too. The "Owns" relationship might have the date I purchased the home. It could be marked as my primary house ()as opposed to my other vast real-estate holdings). Edges also have a direction. I *Own* Lone Palm; the house doesn't own me.
 
 An important rule for graphs is that you cannot have dangling edges. Every graph database will delete a node and all the edges pointing to it or from it. No more worrying about orphan documents or values.
 
 Under the covers graph databases store the nodes and edges efficiently. They can plow through a fairly complex query like "who are my friends' friends' friends that drive a car and enjoy llama videos?" A RDBMS using a simple two table design of Person and Friends would take a while to get this answer. It would have to join back onto the the table twice to find the relationships, then apply a filter on them to find the individual that matched. Graph databases, on the other hand, can spit out "Carl" in a few milliseconds.
 
-Distributed graph traversal is the brass ring for the industry now. Some vendors have supported the operation for a few years. Others are just getting into the feature now. As always, distributed systems can allow you to scale your graphs far beyond what one box might provide.
+Distributed graph traversal is the brass ring for the industry now. Some vendors have supported the operation for a few years. Others are just getting into the feature now. Distribution allows the graphs to grow larger than what one box could handle.
 
 Like other NoSQLs there is no universal query language. Unlike most NoSQLs there are two on the horizon: Gremlin and SPARQL. Checkout the roadmaps of any product you're investigating to see if it supports either. Hopefully more will. Enterprises and developers can sleep a little easier knowing they are not locked in to a particular vendor.
 
 ## Getting to Know the Players
 
-Wikipedia provides a list of over 20 products in the graph storage space [^wiki_graphs]. They run the gambit from GPL open-source, to open-sourced community edition with closed-source enterprise edition to fully closed source/paid license edition. That is a lot to choose from. The selected projects cover the licensing and notoriety spectrum. 
+Wikipedia provides a list of over 20 products in the graph storage space[^wiki_graphs]. They run the gambit from GPL open-source, to open-sourced community edition with closed-source enterprise edition to fully closed source/paid license edition. That is a lot to choose from. The selected projects cover the licensing and notoriety spectrum. 
 
 ### ArangoDB
 
@@ -31,7 +31,7 @@ If you've read the document store chapter, you'll be familiar with ArangoDB. It'
 
 The graph feature is in its nascent stage. You can add nodes and edges. You can query on it. You can do all this on only one server. The road map has distributed graphs targeted by the end of 2014. If you need to house a large graph, you can either size a single box appropriately or look at alternatives.
 
-ArangoDB provides flexibility with its multi-mode approach. Your developers don't need to know two different server technologies for graphs and document storage. DevOps can learn how to manage ArangoDB and only ArangoDB.
+ArangoDB's flexibility means your developers don't need to know two different server technologies for graphs and document storage. DevOps can learn how to manage ArangoDB and only ArangoDB.
 
 ### Neo4J
 
@@ -41,7 +41,7 @@ Probably the most well known of the graph offerings. Written in Java (hence the 
 
 Neo4J supports three query languages: SPARQL, Gremlin and Cypher. The first two are open languages. Cypher is Neo4J's proprietary language. Cypher often provides better performance. The others provide decoupling from the underlying vendor.
 
-An interesting feature of Neo4J is embeddability [^neo_embed]. Any application that targets the Java Virtual Machine (JVM) can call into Neo4J. The result is that the database is fast. It's in the same process space as the application itself. There is no network communication causing worry about performance and security.
+An interesting feature of Neo4J is embeddability[^neo_embed]. Any application that targets the Java Virtual Machine (JVM) can call into Neo4J. The result is that the database is fast. It's in the same process space as the application itself. There is no network communication causing worry about performance and security.
 
 ### InfiniteGraph
 
@@ -49,7 +49,9 @@ The homepage is http://www.objectivity.com/infinitegraph/.
 
 Of all the systems reviewed for this book, InifiniteGraph is one of the most mature and complex graph databases on the market. It provides a truly distributed graph space. You can manage data locality and other aspects from a beautiful admin system. 
 
-It is a closed-source system. Licensing is more like Oracle in that you can pay per site or processor. You a 60 day free trial. This is the go system if you know you'll have a large, even approaching **__big__** data. 
+It is a closed-source system. Licensing is more like Oracle in that you can pay per site or processor. You get a 60 day free trial. 
+
+This is the go system if you know you'll have large, even approaching **__big__**, data. 
 
 ### Special Mention: Apache Giraph
 
@@ -102,6 +104,13 @@ Prefer SSDs over magnetic disks. When a graph database starts cold, it has to pu
 
 ### In the Cloud
 
+Cloud instances require you to know your actual workload at bit more than you might on premise. Since graph databases can bottleneck anywhere, a general compute node with a reasonable amount of memory like an **m3.large** on AWS or a **n1-standard-2** on Google Compute Engine is a good starting point. 
+
+An interesting thing to consider is can you use smaller nodes in a distributed system. The driving force behind larger instances is that the data in that instance needs to be in memory. Sharding to three computers means that it each shard only needs 1/3 the memory. You might be able to get higher availability near the same price as one large instance.
+
+Storage is hard. Google provides essentially SAN disks as local storage for instances. If a server is terminated, the data will survive (unless you configured it to die with the instance). This is great for databases from a durability perspective. It's problematic from a performance perspective: you've got network latency. AWS' approach is to have actual physcial drives locally, but they are more transient. To quote, "data on instance store volumes is lost under the following circumstances: Failure of an underlying drive[,] Stopping an Amazon EBS-backed instance[,] Terminating an instance. Therefore, do not rely on instance store volumes for valuable, long-term data"[^aws_bye_bye]. You'll need to replicate the data out of the local, fast storage into slower, and erratic S3 or EBS.
+
+Softlayer[^softlayer], Linode[^linode] or Digital Ocean[^digital_ocean] might work well. You get performant instances or bare-metal servers all remotely racked. 
 
 ## Further Resources
 
@@ -114,3 +123,7 @@ Prefer SSDs over magnetic disks. When a graph database starts cold, it has to pu
 [^neo_embed]: http://neo4j.com/docs/stable/tutorials-java-embedded.html
 [^fb_giraph]: https://www.facebook.com/notes/facebook-engineering/scaling-apache-giraph-to-a-trillion-edges/10151617006153920
 [^mapquest]: http://developer.mapquest.com/web/products/dev-services/directions-ws
+[^aws_bye_bye]: http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html
+[^softlayer]: http://www.softlayer.com/bare-metal-servers
+[^linode]: https://www.linode.com
+[^digital_ocean]: https://www.digitalocean.com
