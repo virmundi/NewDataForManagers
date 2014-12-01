@@ -72,7 +72,7 @@ Failure happens everyday. A powerful Oracle box suddenly goes offline due to a b
 
 Failure happens even more when you’re working in a shared/distributed system. Let’s say you’ve got a great system that has a slim chance of failing which means that it’s got a 99.9% chance of not failing. If you’ve got 40 nodes in a cluster you’ll have 3.9% chance that something will fail[^no_ca]. Now you’ve got to figure out how you’re going to react to failure. 
 
-Fortunately the Failure Reaction Triangle exists just like the Project Management Triangle[^pm_triangle]. This triangle is CAP. C stands for Consistency. A is Availability. P is Partition tolerance (T is not capitalized because it would be the CAPT theory and NoSQL folks tend to be pacifists; I’m making this part up). Like the Project Management Triangle, you get to pick two. Unlike the Project Management Triangle, CA is not possible[^no_ca].
+Fortunately the Failure Reaction Triangle exists just like the Project Management Triangle[^pm_triangle]. This triangle is CAP. C stands for Consistency. A is Availability. P is Partition tolerance (T is not capitalized because it would be the CAPT theory and NoSQL folks tend to be pacifists; I’m making this obscure part up). Like the Project Management Triangle, you get to pick two. Unlike the Project Management Triangle, CA is not possible[^no_ca].
 
 Consistency means that to an outside observer, like a database client, change events happen at single, logical point. This means that once a change is made to a record, all of the subsequent calls about that record reflect the change. 
 
