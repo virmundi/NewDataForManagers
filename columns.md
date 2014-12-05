@@ -81,12 +81,46 @@ If your looking to a Bat Phone to a support company, never fear, Hortonworks[^ho
 
 ## So How Would We Use This?
 
+### Rapid Data Landing
+Systems create more data per year than ever existed in the prior years combined. Sensors on an assembly line can spew all sorts of wonderful snippets of data 24/7. Enterprise web apps can monitor real-time mouse movements to see where which screen has the most mouse movements or longest pauses. Twitter and Facebook make data fall like the rain.
+
+All of this data can come at your systems like a flood. Traditional databases, even large Oracle installations, fail to keep up. Often this is due to both the volume of the data as well as the shape of the data. Columnar stores are geared to just this type of ingest. 
+
+### Simple, Integrated Data Centers
+Data warehousing is an arduous task. Multiple systems have to push their information to the warehouse. One or more ETL processes massage the data, denormalize it when needed and land it. Systems don't have the same sync windows. Often correcting system failures is a manual process that's fraught with data loss and lost productivity.
+
+Products likes Cassandra are a data warehouse in a box. You can use them as an OLAP and OLTP center. Analytics can run against one specific replica. Real-time transactions can run against the other replicas. These replicas can be stored between two data centers. Its eventually consistent model allows data to flow freely between centers.
+
 ## Sizing and Cost Considerations
+
+When considering sizing and cost one must, now a days, look to Cloud vs Local. We'll first look at sizing locally within a company. Then we'll look at what major companies provide by way of cloud hosting.
+
+### On Premises
+Sizing depends on which system you're going with. HBase might share resources on a Hadoop cluster. Cassandra often runs on its own dedicated cluster.
+
+The folks at DataStax provide a thorough breakdown of what you should get for Cassandra. You can find it in the Further Resources section below. I'll highlight the their recommendations.
+
+First, as with every other storage system out there, the more memory you have the better. Aim for 16 to 32 GB per node with the bare minimum of 8 GB for a production box.
+
+Second, Cassandra is surprisingly CPU bound. Its tweaked I/O to the point where it spends more time hashing to find records than waiting on data.
+
+Third, get SSDs. They provide great random reads while allowing reasonable block write performance.  Even if you go with HDDs, avoid raid. Both HBase and Cassandra work in contiguous writes.
+
+### In the Cloud
+
+If you're going to deploy to AWS your opening move is to boot up an m3.large, r3.large or ix.large. Any one of these models has local SSDs, 7.5 GB of RAM and decent CPUs. The difference between them is end your going to optimize for: memory, CPU or disk. The lower class servers are fine for experimentation and evaluation. You don't want walk into production with them though. They either lack CPU, physical local disks or memory.
+
+Keep in mind that AWS local disks are presently transient. If the server stops or terminates, you will loose all of the information. You will have to pay for EBS backup storage as well as plan backup processes. This is some what mitigated by the replication process of a columnar store. If you trust that you've got enough nodes to survive a collapse, your data should be fine. This is especially true if you put one of your replicas in another region.
+
+Linode and Digital Ocean offer SSD backed units with 8GB or more for around $80/month. 
+
+Google's pricing model is a bit denser than AWS or Linode. Start with an n1-standard-2 or with the n1-highmem-2. You can provision local SSDs at $.22-ish/GB.
 
 ## Further Resources
 
 * Secondary indexes in Cassandra - http://www.wentnet.com/blog/?p=77
 * HBase Official Free Book - http://hbase.apache.org/book/book.html
+* DataStax on sizing - http://www.datastax.com/documentation/cassandra/1.2/cassandra/architecture/architecturePlanningAbout_c.html
 
 [^bigtable_google]: http://research.google.com/archive/bigtable.html
 [^oracle_nulls]: https://community.oracle.com/thread/855964
