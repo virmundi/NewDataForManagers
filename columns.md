@@ -7,15 +7,9 @@ Columnar stores have the reputation of being obtuse. I think this stems from the
 Suspended? Good. Let's look at the system.
 
 ## Architecture
-Suspending false equivalences is not the same as forgetting the prior model. Most RDBMS are row-centric. An entity is the table. A user is the `USER` table. 
+Suspending false equivalences is not the same as forgetting the prior model. Most RDBMS are row-centric. An entity is the table. A user is the `USER` table. Read and write operations occur against the entire row. There are three ramifications.
 
-Read and write operations occur against the entire row. 
-
-Let's say you have a demographic table with 100 columns about your users. You want to know the average age of all the men that purchased an item within the last six months. You only need 3 columns of data: `GENDER`, `BIRTHDATE`, and `LAST_PURCHASED_DT`. Because it's row-centric, the database will actually read in all 100 columns, discard 97 and calculate against the three. That is a lot of wasted I/O.
-
-Another implementation detail of row designs is that every row has to have 100 columns. This causes wasted space due to nulls[^oracle_nulls]. 
-
-It also misrepresents the state of the data from a modeling perspective. A user might not provide a subset of fields. The fields make the user look incomplete. In reality the user is not incomplete, but a different type of user stuck in a fixed model.
+First, let's say you have a demographic table with 100 columns about your users. You want to know the average age of all the men that purchased an item within the last six months. You only need 3 columns of data: `GENDER`, `BIRTHDATE`, and `LAST_PURCHASED_DT`. Because it's row-centric, the database will actually read in all 100 columns, discard 97 and calculate against the three. That is a lot of wasted I/O. Second, every row has to have 100 columns. This causes wasted space due to nulls[^oracle_nulls].  Third, it also misrepresents the state of the data from a modeling perspective. A user might only provide a subset of fields. The null fields make the user look incomplete. In reality the user is not incomplete, but a different type of user stuck in a fixed model.
 
 Now that we've outlined the relational database storage model. Let's switch to the columnar model.
 
@@ -26,7 +20,7 @@ A column has three pieces of data: column name, column value, and column timesta
 
 Columns are grouped into column families. A family has a row key. Depending on the actual system used, you can have either relatively static or dynamic columns within the family. 
 
-By "relatively static" I mean that a column family can say, "I have these possible columns, but not every row in the family provides them all. They just can't add extras." Dynamic means just that: no fixed schema. Dynamic columns enable you to essentially create pre-calculated rows just as you would with a materialized view in RDBMS land. Let's say you have a project submission  request with comments. A dynamic row might have the submitted document, it's meta-data for the evaluation process and each comment by the reviewers represented by the dynamic columns where the column name is the reviewer id and the column value is the comment.
+By "relatively static" I mean that a column family can say, "I have these possible columns, but not every row in the family provides them all. They just can't add extras." Dynamic means just that: no fixed schema. Dynamic columns enable you to essentially create pre-calculated rows just as you would with a materialized view in RDBMS land. Let's say you have a project submission  request with comments. A dynamic row might have the submitted document, its meta-data for the evaluation process and each comment by the reviewers represented by the dynamic columns where the column name is the reviewer id and the column value is the comment.
 
 Super column families are like a view over multiple column families. If you need to analyze two or more column families at once, you should look at using super columns. **Quick Note:** super column families might be deprecated in some engines; RTFM before committing to a modeling paradigm.
 
@@ -45,23 +39,28 @@ The more nodes involved in the quorum, the slower the read operation because it 
 There are no joins in such systems. Columns can point to other columns in other tables. It's up to the application to perform another query to get the information in the second table. At first blush this appears limiting. In practice, denormalization is your friend. Rather than storing information in another table, duplicate data into a column family. This gives you essentially materialized views in the row itself.
 
 ## Getting to Know the Players
-Google's BigTable pushed this concept. They've used it to deal with multiple products like Google Earth and Google Finance[^bigtable_google]. Others have used it as well. It is part of the PaaS offerings by Google[^google_cloud_data]. None one has used it outside of the Google server environment. People liked the idea though, so they worked to replicate it.
+Google's BigTable pushed this concept. They've used it with multiple products like Google Earth and Google Finance[^bigtable_google]. Others have used it as well. It's part of the PaaS offerings by Google[^google_cloud_data]. None one has used it outside of the Google server environment. People liked the idea though, so they worked to replicate it.
 
 ### Cassandra
 The homepage is http://cassandra.apache.org/. 
 
-Cassandra is a top-level project from Apache by way of Facebook. It is living largely in the AP camp. In 2008 Facebook was looking for a way to build out its data collection infrastructure.  Their solution was a hybrid between BigTable and Amazon DynamoDB. A little while after creating the first pass of Cassandra, Facebook pretty much abandoned the project in favor of HBase. Fortunately, large companies like Apple and Netflix picked up where Facebook left off[^fb_abandon].
+Cassandra is a top-level project from Apache by way of Facebook. It is living largely in the AP camp. 
 
-Cassandra is a complex, powerful storage system. It consistently wins performance shoutouts focused on I/O speed[^cassandra_shoutout]. It is eventually consistent. Quorums allow the developer to strike the right balance between consistency and speed.  Unlike other NoSQLs, there is no single point of failure in the entire system. It uses a gossip protocol to figure out the structure of the cluster. If its friends are unavailable, it learns to ignore them until contacted later. 
+In 2008 Facebook was looking for a way to build out its data collection infrastructure.  Their solution was a hybrid between BigTable and Amazon DynamoDB. A little while after creating the first pass of Cassandra, Facebook pretty much abandoned the project in favor of HBase. Fortunately, large companies like Apple and Netflix picked up where Facebook left off[^fb_abandon].
+
+Cassandra is a complex, powerful storage system. It consistently wins performance shootouts focused on I/O speed[^cassandra_shootout]. It is eventually consistent. Quorums allow the developer to strike the right balance between consistency and speed.  Unlike other NoSQLs, there is no single point of failure in the entire system. It uses a gossip protocol to figure out the structure of the cluster.  
+
+A gossip protocol starts with a set of known nodes. The new node calls up the known nodes to see how they're doing. Those nodes say, "I'm fine. Have you met Ted?" Ted is then added to the list of possible node. If the node's friends are unavailable, it learns to ignore them until contacted later. 
 
 Below are some features that make it standout.
+
 * Adjustable quorum size.
 * Secondary indexes.
 * True linear scaling (2 boxes run twice as fast as 1).
 * Resiliency during node failures.
 
 
-If your looking to a Bat Phone to a support company, never fear, DataStax[^datastax] is here. Recently called a Visionary by Gartner, they are the premier Cassandra consulting group.
+If your looking for a Bat Phone to a support company, never fear, DataStax[^datastax] is here. Recently called a Visionary[^gartner_datastax] by Gartner, they are the premier Cassandra consulting group.
 
 ### HBase
 
@@ -71,13 +70,15 @@ HBase is another Apache top-level project. Originally developed by Powerset, it'
 
 HBase sits atop Hadoop's HDFS. While Hadoop gets special treatment later in the book, now is a fine time to take a sneak peak. HDFS is Hadoop's distributed file system. HBase only writes data to HDFS (excluding the local drive). Under the covers HDFS takes care of replication and all of the other bookkeeping associated with tracking data.
 
+
 Below are some features that make it standout. 
-* Easier Hadoop integration.
-* Bloom filters.
+
+* Easier Hadoop integration. HBase carves out its own little fiefdom in HDFS. You still have to ETL in and out of it.
+* Bloom filters. Quickly tells if a thing is *not* in a set of data. False positives are possible. False negatives are not.
 * Advanced in-memory operations.
 * Simpler development model when compared to Cassandra.
 
-If your looking to a Bat Phone to a support company, never fear, Hortonworks[^hortonworks] is here. Hortonworks has the largest number of contributors to the core Hadoop space than any other company. If you want to use HBase or any other to the fullest by working with a great partner, I know from personal experience Hortoworks is the way to go.
+If your looking for a Bat Phone to a support company, never fear, Hortonworks[^hortonworks] is here. Hortonworks has the largest number of contributors to the core Hadoop space than any other company. If you want to use HBase or any other to the fullest by working with a great partner, I know from personal experience Hortonworks is the way to go.
 
 ## So How Would We Use This?
 
@@ -87,7 +88,7 @@ Systems create more data per year than ever existed in the prior years combined.
 All of this data can come at your systems like a flood. Traditional databases, even large Oracle installations, fail to keep up. Often this is due to both the volume of the data as well as the shape of the data. Columnar stores are geared to just this type of ingest. 
 
 ### Simple, Integrated Data Centers
-Data warehousing is an arduous task. Multiple systems have to push their information to the warehouse. One or more ETL processes massage the data, denormalize it when needed and land it. Systems don't have the same sync windows. Often correcting system failures is a manual process that's fraught with data loss and lost productivity.
+Data warehousing is an arduous task. Multiple systems have to push their information to the warehouse. One or more ETL processes massage the data, denormalize it when needed and land it. Systems don't have the same sync windows. Often correcting system failures is a manual process that's fraught with data and productivity loss.
 
 Products likes Cassandra are a data warehouse in a box. You can use them as an OLAP and OLTP center. Analytics can run against one specific replica. Real-time transactions can run against the other replicas. These replicas can be stored between two data centers. Its eventually consistent model allows data to flow freely between centers.
 
@@ -108,7 +109,7 @@ Third, get SSDs. They provide great random reads while allowing reasonable block
 
 ### In the Cloud
 
-If you're going to deploy to AWS your opening move is to boot up an m3.large, r3.large or ix.large. Any one of these models has local SSDs, 7.5 GB of RAM and decent CPUs. The difference between them is end your going to optimize for: memory, CPU or disk. The lower class servers are fine for experimentation and evaluation. You don't want walk into production with them though. They either lack CPU, physical local disks or memory.
+If you're going to deploy to AWS your opening move is to boot up an m3.large, r3.large or ix.large. Any one of these models has local SSDs, 7.5 GB of RAM and decent CPUs. The difference between them is bottleneck you're optimizing for: memory, CPU or disk. The lower class servers are fine for experimentation and evaluation. You don't want walk into production with them though. They either lack CPU, physical local disks or memory.
 
 Keep in mind that AWS local disks are presently transient. If the server stops or terminates, you will loose all of the information. You will have to pay for EBS backup storage as well as plan backup processes. This is some what mitigated by the replication process of a columnar store. If you trust that you've got enough nodes to survive a collapse, your data should be fine. This is especially true if you put one of your replicas in another region.
 
@@ -121,11 +122,14 @@ Google's pricing model is a bit denser than AWS or Linode. Start with an n1-stan
 * Secondary indexes in Cassandra - http://www.wentnet.com/blog/?p=77
 * HBase Official Free Book - http://hbase.apache.org/book/book.html
 * DataStax on sizing - http://www.datastax.com/documentation/cassandra/1.2/cassandra/architecture/architecturePlanningAbout_c.html
+* Cassandra on Google's Cloud - https://cloud.google.com/solutions/cassandra/
+* DataStax's Guide for AWS - http://www.datastax.com/documentation/cassandra/2.0/cassandra/install/installAMI.html
 
 [^bigtable_google]: http://research.google.com/archive/bigtable.html
 [^oracle_nulls]: https://community.oracle.com/thread/855964
 [^google_cloud_data]: https://cloud.google.com/datastore/
 [^fb_abandon]: https://www.facebook.com/note.php?note_id=454991608919
-[^cassandra_shoutout]: http://planetcassandra.org/what-is-apache-cassandra/
+[^cassandra_shootout]: http://planetcassandra.org/what-is-apache-cassandra/
 [^datastax]: http://www.datastax.com/
+[^gartner_datastax]: http://www.datastax.com/2014/10/gartner-names-datastax-a-visionary-in-the-2014-magic-quadrant-for-operational-database-management-systems
 [^hortonworks]: http://hortonworks.com/hadoop/hbase/
