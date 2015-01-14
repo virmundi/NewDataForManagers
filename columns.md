@@ -2,7 +2,7 @@
 
 Of all the NoSQL families, Columnar Storage is the most RDBMS-ish. There are rows and there are columns. The database knows about column types. The key difference is how one has to relearn what a row is.
 
-Columnar stores have the reputation of being obtuse. I think this stems from there general appearance. It took me multiple tries to understand how they actually work. My issue, and I think a lot of people's, is approaching a columnar store as a table store in the RDBMS sense. You really have to suspend this mapping.
+Columnar stores have the reputation of being obtuse. I think this stems from their general appearance. It took me multiple tries to understand how they actually work. My issue, and I think a lot of people's, is approaching a columnar store as a table store in the RDBMS sense. You really have to suspend this mapping.
 
 Suspended? Good. Let's look at the system.
 
@@ -16,7 +16,7 @@ Now that we've outlined the relational database storage model. Let's switch to t
 ### Building Blocks
 The smallest unit of storage is a column. 
 
-A column has three pieces of data: column name, column value, and column timestamp. A value is typed like `INTEGER` or `STRING`. Of these the timestamp is the most interesting. The system determines the data age from timestamp. Age helps the system determine conflict resolution like the most recent write wins.
+A column has three pieces of data: column name, column value, and column timestamp. A value is typed like `INTEGER` or `STRING`. Of these the timestamp is the most interesting. The system determines the data's age from the timestamp. Age helps the system determine conflict resolution like the most recent write wins.
 
 Columns are grouped into column families. A family has a row key. Depending on the actual system used, you can have either relatively static or dynamic columns within the family. 
 
@@ -30,13 +30,13 @@ Column families are written in contiguous chunks on the hard drive. This allows 
 
 Every system leverages replication at a column family level. When one defines a column family, the number of replicas is specified, or a default, like three, is used. 
 
-At this point our friend the CAP theorem comes in. Some systems choose CP. Others will choose AP. Some systems even allow you dial up or down your needs between the two extremes. This is a quorum. Such systems allow you to poll the replicas to see what the common answer is. If two nodes say a row is "X, Y, Z" while a third says "X,C,B' and the quorum setting is 50% or more, the client will get a row of "X,Y,Z". 
+At this point our friend the CAP theorem comes in. Some systems choose CP. Others will choose AP. Some systems allow you dial up or down your needs between the two extremes. This is a quorum. Such systems allow you to poll the replicas to see what the common answer is. If two nodes say a row is "X, Y, Z" while a third says "X,C,B' and the quorum setting is 50% or more, the client will get a row of "X,Y,Z". 
 
-The more nodes involved in the quorum, the slower the read operation because it has wait for each node's response. If the quorum is set to one node, that puts you squarely in the AP camp. If the quorum is set to all the nodes, you're in the C camp because you can't necessarily survive a network partition if one of your replicas is on the other side of the partition.
+The more nodes involved in the quorum, the slower the read operation because it has to wait for each node's response. If the quorum is set to one node, that puts you squarely in the AP camp. If the quorum is set to all the nodes, you're in the C camp because you can't necessarily survive a network partition if one of your replicas is on the other side of the partition. (Quick note, all nodes only means all of the nodes that have a replica of the data you're looking for.)
 
 
 ### Joins
-There are no joins in such systems. Columns can point to other columns in other tables. It's up to the application to perform another query to get the information in the second table. At first blush this appears limiting. In practice, denormalization is your friend. Rather than storing information in another table, duplicate data into a column family. This gives you essentially materialized views in the row itself.
+There are no joins in such systems. Columns can point to other columns in other tables. It's up to the application to perform another query to get the information from the second table. At first blush this appears limiting. In practice, denormalization is your friend. Rather than storing information in another table, duplicate data into a column family. This gives you essentially materialized views in the row itself.
 
 ## Getting to Know the Players
 Google's BigTable pushed this concept. They've used it with multiple products like Google Earth and Google Finance[^bigtable_google]. Others have used it as well. It's part of the PaaS offerings by Google[^google_cloud_data]. None one has used it outside of the Google server environment. People liked the idea though, so they worked to replicate it.
@@ -52,7 +52,7 @@ Cassandra is a complex, powerful storage system. It consistently wins performanc
 
 A gossip protocol starts with a set of known nodes. The new node calls up the known nodes to see how they're doing. Those nodes say, "I'm fine. Have you met Ted?" Ted is then added to the list of possible node. If the node's friends are unavailable, it learns to ignore them until contacted later. 
 
-Below are some features that make it standout.
+Below are some features that make it stand out.
 
 * Adjustable quorum size.
 * Secondary indexes.
@@ -60,7 +60,7 @@ Below are some features that make it standout.
 * Resiliency during node failures.
 
 
-If your looking for a Bat Phone to a support company, never fear, DataStax[^datastax] is here. Recently called a Visionary[^gartner_datastax] by Gartner, they are the premier Cassandra consulting group.
+If you're looking for a Bat Phone to a support company, never fear, DataStax[^datastax] is here. Recently called a Visionary[^gartner_datastax] by Gartner, they are the premier Cassandra consulting group.
 
 ### HBase
 
@@ -70,15 +70,14 @@ HBase is another Apache top-level project. Originally developed by Powerset, it'
 
 HBase sits atop Hadoop's HDFS. While Hadoop gets special treatment later in the book, now is a fine time to take a sneak peak. HDFS is Hadoop's distributed file system. HBase only writes data to HDFS (excluding the local drive). Under the covers HDFS takes care of replication and all of the other bookkeeping associated with tracking data.
 
-
-Below are some features that make it standout. 
+Below are some features that make it stand out. 
 
 * Easier Hadoop integration. HBase carves out its own little fiefdom in HDFS. You still have to ETL in and out of it.
 * Bloom filters. Quickly tells if a thing is *not* in a set of data. False positives are possible. False negatives are not.
 * Advanced in-memory operations.
 * Simpler development model when compared to Cassandra.
 
-If your looking for a Bat Phone to a support company, never fear, Hortonworks[^hortonworks] is here. Hortonworks has the largest number of contributors to the core Hadoop space than any other company. If you want to use HBase or any other to the fullest by working with a great partner, I know from personal experience Hortonworks is the way to go.
+If you're looking for a Bat Phone to a support company, never fear, Hortonworks[^hortonworks] is here. Hortonworks has the largest number of contributors to the core Hadoop space than any other company. If you want to use HBase or any other Apache tool to the fullest by working with a great partner, I know from personal experience, Hortonworks is the way to go.
 
 ## So How Would We Use This?
 
@@ -90,40 +89,41 @@ All of this data can come at your systems like a flood. Traditional databases, e
 ### Simple, Integrated Data Centers
 Data warehousing is an arduous task. Multiple systems have to push their information to the warehouse. One or more ETL processes massage the data, denormalize it when needed and land it. Systems don't have the same sync windows. Often correcting system failures is a manual process that's fraught with data and productivity loss.
 
-Products likes Cassandra are a data warehouse in a box. You can use them as an OLAP and OLTP center. Analytics can run against one specific replica. Real-time transactions can run against the other replicas. These replicas can be stored between two data centers. Its eventually consistent model allows data to flow freely between centers.
+Products like Cassandra are a data warehouse in a box. You can use them as an OLAP and OLTP center. Analytics can run against one specific replica. Real-time transactions can run against the other replicas. These replicas can be stored between two data centers. Its eventually consistent model allows data to flow freely between centers.
 
 ## Sizing and Cost Considerations
 
-When considering sizing and cost one must, now a days, look to Cloud vs Local. We'll first look at sizing locally within a company. Then we'll look at what major companies provide by way of cloud hosting.
+When considering sizing and cost one must look to Cloud vs Local. We'll first look at sizing locally within a company. Then we'll look at what major companies provide by way of cloud hosting.
 
 ### On Premises
-Sizing depends on which system you're going with. HBase might share resources on a Hadoop cluster. Cassandra often runs on its own dedicated cluster.
+Sizing depends on which system you're going with. HBase shares resources on a Hadoop cluster. Cassandra often runs on its own dedicated cluster.
 
 The folks at DataStax provide a thorough breakdown of what you should get for Cassandra. You can find it in the Further Resources section below. I'll highlight the their recommendations.
 
 First, as with every other storage system out there, the more memory you have the better. Aim for 16 to 32 GB per node with the bare minimum of 8 GB for a production box.
 
-Second, Cassandra is surprisingly CPU bound. Its tweaked I/O to the point where it spends more time hashing to find records than waiting on data.
+Second, Cassandra is surprisingly CPU bound. Its tweaked I/O to the point where it spends more time hashing to find records than waiting for data.
 
-Third, get SSDs. They provide great random reads while allowing reasonable block write performance.  Even if you go with HDDs, avoid raid. Both HBase and Cassandra work in contiguous writes.
+Third, get SSDs. They provide great random reads while allowing reasonable block write performance.  Even if you go with HDDs, avoid raid. Both HBase and Cassandra work in contiguous writes so you won't get much from RAID. You also have replicated data on other nodes so you don't need RAID for that either.
 
 ### In the Cloud
 
-If you're going to deploy to AWS your opening move is to boot up an m3.large, r3.large or ix.large. Any one of these models has local SSDs, 7.5 GB of RAM and decent CPUs. The difference between them is bottleneck you're optimizing for: memory, CPU or disk. The lower class servers are fine for experimentation and evaluation. You don't want walk into production with them though. They either lack CPU, physical local disks or memory.
+If you're going to deploy to AWS, your opening move is to boot up an m3.large, r3.large or ix.large. Any one of these models has local SSDs, 7.5 GB of RAM and decent CPUs. The difference between them is the bottleneck you're optimizing for: memory, CPU or disk. The lower class servers are fine for experimentation and evaluation. You don't want to walk into production with them though. They either lack CPU, physical local disks or memory.
 
-Keep in mind that AWS local disks are presently transient. If the server stops or terminates, you will loose all of the information. You will have to pay for EBS backup storage as well as plan backup processes. This is some what mitigated by the replication process of a columnar store. If you trust that you've got enough nodes to survive a collapse, your data should be fine. This is especially true if you put one of your replicas in another region.
+Keep in mind that AWS local disks are presently transient. If the server stops or terminates, you will loose all of the information. You will have to pay for EBS backup storage as well as plan backup processes. This is somewhat mitigated by the replication process of a columnar store. If you trust that you've got enough nodes to survive a collapse, your data should be fine. This is especially true if you put one of your replicas in another region.
 
 Linode and Digital Ocean offer SSD backed units with 8GB or more for around $80/month. 
 
-Google's pricing model is a bit denser than AWS or Linode. Start with an n1-standard-2 or with the n1-highmem-2. You can provision local SSDs at $.22-ish/GB.
+Google's pricing model is a bit denser than AWS or Linode. Start with an n1-standard-2 or with the n1-highmem-2. You can provision local SSDs at $0.22-ish/GB.
 
 ## Further Resources
-
+Below are some links to interesting topics for continued reading. 
 * Secondary indexes in Cassandra - http://www.wentnet.com/blog/?p=77
 * HBase Official Free Book - http://hbase.apache.org/book/book.html
 * DataStax on sizing - http://www.datastax.com/documentation/cassandra/1.2/cassandra/architecture/architecturePlanningAbout_c.html
 * Cassandra on Google's Cloud - https://cloud.google.com/solutions/cassandra/
 * DataStax's Guide for AWS - http://www.datastax.com/documentation/cassandra/2.0/cassandra/install/installAMI.html
+* Google's BigTable Paper - http://research.google.com/archive/bigtable.html
 
 [^bigtable_google]: http://research.google.com/archive/bigtable.html
 [^oracle_nulls]: https://community.oracle.com/thread/855964
