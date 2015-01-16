@@ -1,10 +1,10 @@
 # Object Databases
 
-You've probably heard of Object Oriented Programming. Object databases take the idea further by saying, "Hey, why not just save the whole complex object at once?" There is no messy ORM. The developer simply saves an object into the database and pulls it out at a later date. Exactly how all of this magic occurs is vendor specific. That is the general idea though: object.save() and find(query).
+You've probably heard of Object Oriented Programming. Object databases take the idea further by saying, "Hey, why not just save the whole complex object at once?" There's no messy ORM. The developer simply saves an object into the database and pulls it out at a later date. Exactly how all of this magic occurs is vendor specific. The general idea though: object.save() and find(query).
 
 There are two terms floating around that sound similar, but for our purposes are distinct. The first is an object database. An object database is a database that stores objects. It tends to be tied to the application language. The second is object-relational database. Such a database still uses relational ideas under the covers. There is an object veneer across the top. SQL:1999 made this easier by adding custom types to the database. The fundamental difference between the two is the underlying storage model. Object databases are based on objects or if the vendor is being fancy "object calculus". Object-relational databases are based on set theory/relational theory.
 
-Unlike many other NoSQL families, there are (mostly dead) standards available. Some provide direct interfaces for Java's JPA data abstraction layer. The Object Data Management Group created three standards before JPA. The work culminated in Java Data Objects (JDO). The Object Management Group (OMG!) tried to create spec vs 4.0. Unfortunately the economic crisis of 2008 caused the vendors in the consortium to pull out. How is this helpful? A) fun facts for a technical mixer and B) the vendors support  some level of the specification. When shopping around, you're not entirely in the dark about what they provide. 
+Unlike many other NoSQL families, there are (mostly dead) standards available. Some provide direct interfaces for Java's JPA data abstraction layer. The Object Data Management Group created three standards before Sun's JPA. The work culminated in Java Data Objects (JDO). The Object Management Group (OMG!) tried to create spec v4.0. Unfortunately the economic crisis of 2008 caused the vendors in the consortium to pull out. How is this helpful? A) fun facts for a technical mixer and B) the vendors support  some level of  specification. When shopping around, you're not entirely in the dark about what they provide. 
 
 ## Architecture
 
@@ -32,14 +32,14 @@ Distribution is a bit more complex. Servers may return whole object graphs. Let'
 
 OODB' are tightly coupled with one or a few programming languages. The benefit of this is that there's no mismatch between the common development tool and the database. This makes working with the storage engine mentally easier. Because there is no mapping layer, most systems are 10 to 1,000 times faster with 40% reduced code base (at least around parts of the system involving the DB)[^speed_language]. A possible issue with the coupling is that the only API in and out of the system is the target language. This may require ETL processes to move  production data from the OODB to an analytics platform.
 
-Querying is an exercise in the host language. The client library exposes operations via an API. Simple expressions like find an object that looks like some instance of an object are normal Java to create the object and pass it to a look up method. There is no need to worry about typing of a column. Java's compiler will tell you what's needed. Complex queries are a composition of method. 
+Querying is an exercise in the host language. The client library exposes operations via an API. Simple expressions like find an object that looks like some instance of an object are common. There is no need to worry about the typing of a column. Java's compiler will tell you what's needed. Complex queries are a composition of method. 
 
 ## Getting to Know the Players
 
 ### Versant
 The homepage is <http://www.actian.com/products/operational-databases/versant/>
 
-Versant is one of the oldest vendors in the list. They're database may be run ass both an embedded server or  a distributed, master-slave system. Each offers high throughput of data ingress and processing.
+Versant is one of the oldest vendors in the list. Their database may be run as  an embedded server or  a distributed, master-slave system. Each offers high throughput of data ingress and processing.
 
 It is used as part of Verizon's fraud detection system. It was developed back in the MCI days. It can monitor for fraud in real-time.
 
